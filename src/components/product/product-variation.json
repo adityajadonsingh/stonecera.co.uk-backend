@@ -1,0 +1,97 @@
+{
+  "collectionName": "components_product_product_variations",
+  "info": {
+    "displayName": "product_variation"
+  },
+  "options": {},
+  "attributes": {
+    "uuid": {
+      "type": "integer"
+    },
+    "SKU": {
+      "type": "string"
+    },
+    "Stock": {
+      "type": "integer"
+    },
+    "Thickness": {
+      "type": "enumeration",
+      "enum": [
+        "THICKNESS 12-20MM",
+        "THICKNESS 15-25MM",
+        "THICKNESS 18MM",
+        "THICKNESS 20MM",
+        "THICKNESS 22MM",
+        "THICKNESS 25-35MM",
+        "THICKNESS 25-45MM",
+        "THICKNESS 30-40MM",
+        "THICKNESS 35-50MM",
+        "THICKNESS 35-55MM",
+        "THICKNESS 68MM"
+      ]
+    },
+    "Size": {
+      "type": "enumeration",
+      "enum": [
+        "SIZE 100X100",
+        "SIZE 100X200",
+        "SIZE 150X900",
+        "SIZE 200X600",
+        "SIZE 228X110",
+        "SIZE 600X1200",
+        "SIZE 600X150",
+        "SIZE 600X600",
+        "SIZE 600X900",
+        "Mix Pack",
+        "NA"
+      ]
+    },
+    "Finish": {
+      "type": "enumeration",
+      "enum": [
+        "Acid",
+        "Flamed",
+        "Half honed and tumbled brushed",
+        "Honed",
+        "Honed/tumbled",
+        "Natural",
+        "Natural half honed And tumbled brushed",
+        "r11",
+        "Tumbled"
+      ]
+    },
+    "PackSize": {
+      "type": "decimal"
+    },
+    "Pcs": {
+      "type": "integer"
+    },
+    "ColorTone": {
+      "type": "enumeration",
+      "enum": [
+        "Beige",
+        "Black",
+        "Blue",
+        "Bronze",
+        "Brown",
+        "Cream",
+        "Golden",
+        "Green",
+        "Grey",
+        "Mint",
+        "Multi",
+        "Red",
+        "Silver",
+        "White",
+        "Yellow"
+      ]
+    },
+    "Price": {
+      "type": "decimal"
+    },
+    "Per_m2": {
+      "type": "decimal"
+    }
+  },
+  "config": {}
+}

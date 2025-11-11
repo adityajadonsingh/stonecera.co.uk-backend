@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "user_details",
+  "info": {
+    "singularName": "user-detail",
+    "pluralName": "user-details",
+    "displayName": "userDetail"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user",
+      "inversedBy": "user_detail"
+    },
+    "fullName": {
+      "type": "string"
+    },
+    "profileImage": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "phoneNumbers": {
+      "type": "component",
+      "component": "input-fields.phone",
+      "repeatable": true
+    },
+    "savedAddresses": {
+      "type": "component",
+      "component": "input-fields.address",
+      "repeatable": true
+    }
+  }
+}

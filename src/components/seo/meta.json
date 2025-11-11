@@ -1,0 +1,57 @@
+{
+  "collectionName": "components_seo_metas",
+  "info": {
+    "displayName": "meta"
+  },
+  "options": {},
+  "attributes": {
+    "meta_title": {
+      "type": "string"
+    },
+    "meta_description": {
+      "type": "text"
+    },
+    "og_title": {
+      "type": "string"
+    },
+    "og_description": {
+      "type": "text"
+    },
+    "og_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "twitter_title": {
+      "type": "string"
+    },
+    "twitter_description": {
+      "type": "text"
+    },
+    "twitter_image": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "canonical_tag": {
+      "type": "string"
+    },
+    "robots": {
+      "type": "string"
+    },
+    "schemas": {
+      "type": "json"
+    }
+  },
+  "config": {}
+}

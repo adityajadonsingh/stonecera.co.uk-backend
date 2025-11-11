@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "orders",
+  "info": {
+    "singularName": "order",
+    "pluralName": "orders",
+    "displayName": "Order"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user"
+    },
+    "orderNumber": {
+      "type": "string"
+    },
+    "items": {
+      "type": "component",
+      "component": "order.order-item",
+      "repeatable": true
+    },
+    "shipping": {
+      "type": "json"
+    },
+    "totals": {
+      "type": "json"
+    },
+    "contact": {
+      "type": "json"
+    },
+    "status": {
+      "type": "enumeration",
+      "default": "pending",
+      "enum": [
+        "pending",
+        "paid",
+        "processing",
+        "shipped",
+        "cancelled"
+      ]
+    },
+    "metadata": {
+      "type": "json"
+    }
+  }
+}

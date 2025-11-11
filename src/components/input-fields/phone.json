@@ -1,0 +1,13 @@
+{
+  "collectionName": "components_input_fields_phones",
+  "info": {
+    "displayName": "phone"
+  },
+  "options": {},
+  "attributes": {
+    "phone": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}
