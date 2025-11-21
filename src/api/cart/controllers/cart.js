@@ -1,13 +1,9 @@
 "use strict";
 
 /**
- * Cart controller (DB-backed) - returns minimal cart item payload including:
- * - id, quantity, unit_price
- * - product: { id, name, slug, image }
- * - variation: { id, stock } (nullable)
- *
- * This version attempts to populate the product.variation component (and images).
- * If the populate attempt fails (different schema), it falls back to populate: true.
+ * Enhanced Cart controller:
+ * - Includes full product variation details (Size, Thickness, Finish, etc.)
+ * - Keeps backward compatibility with existing logic
  */
 
 function isObject(x) {
@@ -77,9 +73,7 @@ function getFirstImageFromProduct(productPlain, metadata) {
         }
       }
     }
-  } catch (e) {
-    // ignore
-  }
+  } catch (e) {}
 
   // 3) metadata fallback
   if (isObject(metadata)) {
@@ -96,73 +90,30 @@ function getFirstImageFromProduct(productPlain, metadata) {
 function findVariationFromProduct(productPlain, variationId) {
   if (!productPlain) return null;
   const raw =
-    productPlain.variations ??
     productPlain.variation ??
+    productPlain.variations ??
     (productPlain.attributes &&
-      (productPlain.attributes.variations ??
-        productPlain.attributes.variation)) ??
+      (productPlain.attributes.variation ??
+        productPlain.attributes.variations)) ??
     null;
   const list = ensureArray(raw);
   const target = String(variationId ?? "");
   for (const v of list) {
     const vp = entityToPlain(v) ?? v ?? {};
     const vid = String(vp.uuid ?? vp.id ?? vp.ID ?? "");
-    if (vid === target) return v;
+    if (vid === target) return vp;
   }
   return null;
 }
 
-function findVariationBySKU(productPlain, sku) {
-  if (!productPlain || !sku) return null;
-  const raw =
-    productPlain.variations ??
-    productPlain.variation ??
-    (productPlain.attributes &&
-      (productPlain.attributes.variations ??
-        productPlain.attributes.variation)) ??
-    null;
-  const list = ensureArray(raw);
-  const target = String(sku).trim();
-  for (const v of list) {
-    const vp = entityToPlain(v) ?? v ?? {};
-    const s = vp.SKU ?? vp.sku ?? vp.code ?? null;
-    if (s !== undefined && s !== null && String(s).trim() === target) return v;
-  }
-  return null;
-}
-
-function getVariationStock(variation) {
-  if (!variation) return null;
-  const vp = entityToPlain(variation) ?? variation;
-  const stock =
-    Number(
-      vp.Stock ??
-        vp.stock ??
-        vp.StockQty ??
-        vp.stockQty ??
-        vp.stock_quantity ??
-        vp.availableStock ??
-        vp.available_stock ??
-        0
-    ) || 0;
-  return { id: vp.id ?? null, stock };
-}
-
-// Build the product populate descriptor to request variation & images if present.
-// We'll try this and fall back to populate: true if Strapi rejects any key.
 function getProductPopulateDescriptor() {
-  // Attempt to detect attributes and request only valid ones
   try {
-    const ct =
-      strapi.contentTypes && strapi.contentTypes["api::product.product"];
+    const ct = strapi.contentTypes["api::product.product"];
     const attrs = ct && ct.attributes ? ct.attributes : {};
     const fields = [];
     if (attrs.images) fields.push("images");
     if (attrs.variation) fields.push("variation");
-    // if (attrs.variations) fields.push("variations");
-    if (fields.length) return { product: { populate: fields } };
-    // no specific fields detected
-    return { product: true };
+    return { product: { populate: fields } };
   } catch (e) {
     return { product: true };
   }
@@ -175,61 +126,87 @@ module.exports = {
       const user = ctx.state.user;
       if (!user) return ctx.unauthorized("You must be logged in");
 
-      const {
-        product: productId,
-        variation_id,
-        quantity = 1,
-      } = ctx.request.body ?? {};
+      const { product: productId, variation_id, quantity = 1 } =
+        ctx.request.body ?? {};
 
       if (!productId || variation_id === undefined || variation_id === null) {
         return ctx.badRequest("product and variation_id are required");
       }
 
-      // populate product fully (we will request variation via populate above in find; here we fetch product fully)
       const product = await strapi.entityService.findOne(
         "api::product.product",
         productId,
-        {
-          populate: ["images", "variation"],
-        }
+        { populate: ["images", "variation"] }
       );
-
       if (!product) return ctx.badRequest("Product not found");
 
       const variation = findVariationFromProduct(product, variation_id);
       if (!variation)
         return ctx.badRequest("Variation not found for this product");
 
-      const vp = entityToPlain(variation) ?? variation;
       const unitPrice =
-        Number(vp.Price ?? vp.price ?? vp.unit_price ?? vp.unitPrice ?? 0) || 0;
+        Number(variation.Price ?? variation.price ?? 0) || 0;
 
-      const created = await strapi.entityService.create("api::cart.cart", {
-        data: {
-          user: user.id,
-          uuid: Number(variation_id),
-          quantity: Number(quantity),
-          unit_price: unitPrice,
-          product: productId,
-          metadata: {
-            productName: (entityToPlain(product)?.name ?? product.name) || null,
-            productImage: getFirstImageFromProduct(
-              entityToPlain(product) ?? product,
-              null
-            ),
-            sku: vp?.SKU ?? vp?.sku ?? null,
+      const existingItems = await strapi.entityService.findMany(
+        "api::cart.cart",
+        {
+          filters: {
+            user: user.id,
+            product: productId,
+            uuid: Number(variation_id),
           },
-        },
-      });
+          limit: 1,
+        }
+      );
 
-      return ctx.send(created);
+      let cartItem;
+      const metadata = {
+        productName: product.name,
+        productImage: getFirstImageFromProduct(product, null),
+        sku: variation.SKU ?? null,
+        variation: {
+          uuid: variation.uuid ?? null,
+          Stock: variation.Stock ?? 0,
+          Thickness: variation.Thickness ?? null,
+          Size: variation.Size ?? null,
+          Finish: variation.Finish ?? null,
+          PackSize: variation.PackSize ?? null,
+          Pcs: variation.Pcs ?? null,
+          ColorTone: variation.ColorTone ?? null,
+          Price: variation.Price ?? null,
+          Per_m2: variation.Per_m2 ?? null,
+        },
+      };
+
+      if (existingItems.length > 0) {
+        const existing = existingItems[0];
+        const newQuantity = Number(existing.quantity ?? 0) + Number(quantity);
+        cartItem = await strapi.entityService.update(
+          "api::cart.cart",
+          existing.id,
+          { data: { quantity: newQuantity, metadata } }
+        );
+      } else {
+        cartItem = await strapi.entityService.create("api::cart.cart", {
+          data: {
+            user: user.id,
+            uuid: Number(variation_id),
+            quantity: Number(quantity),
+            unit_price: unitPrice,
+            product: productId,
+            metadata,
+          },
+        });
+      }
+
+      return ctx.send(cartItem);
     } catch (err) {
       strapi.log.error("cart.add error", err);
       return ctx.internalServerError("Server error");
     }
   },
 
-  // GET /api/cart -> minimal result with product.image + variation.stock
+  // GET /api/cart
   async find(ctx) {
     try {
       const user = ctx.state.user;
@@ -237,16 +214,14 @@ module.exports = {
 
       const populateDescriptor = getProductPopulateDescriptor();
       let items;
+
       try {
         items = await strapi.entityService.findMany("api::cart.cart", {
           filters: { user: user.id },
           populate: populateDescriptor,
         });
       } catch (err) {
-        strapi.log.warn(
-          "cart.find: populate descriptor failed, falling back to populate: { product: true }",
-          err
-        );
+        strapi.log.warn("cart.find populate failed, fallback", err);
         items = await strapi.entityService.findMany("api::cart.cart", {
           filters: { user: user.id },
           populate: { product: true },
@@ -262,35 +237,7 @@ module.exports = {
         const variationUuid = String(
           e.uuid ?? e.variation_id ?? e.variationId ?? ""
         );
-        const rawVariations =
-          productPlain.variation ??
-          productPlain.variations ??
-          productPlain.attributes?.variation ??
-          productPlain.attributes?.variations ??
-          [];
-
-        const variationsArray = ensureArray(rawVariations);
-        let variationMatch = variationsArray.find(
-          (v) => String(v.uuid ?? v.id ?? "") === variationUuid
-        );
-
-        // fallback: by SKU
-        if (!variationMatch && isObject(e.metadata) && e.metadata.sku) {
-          variationMatch = variationsArray.find(
-            (v) =>
-              String(v.sku ?? v.SKU ?? "").trim() ===
-              String(e.metadata.sku).trim()
-          );
-        }
-
-        // build stock info
-        const stockValue = Number(
-          variationMatch?.stock ??
-            variationMatch?.Stock ??
-            variationMatch?.availableStock ??
-            variationMatch?.available_stock ??
-            0
-        );
+        const variation = findVariationFromProduct(productPlain, variationUuid);
 
         const productMin = {
           id: productPlain?.id ?? null,
@@ -305,10 +252,25 @@ module.exports = {
           unit_price: Number(e.unit_price ?? e.unitPrice ?? 0),
           product: productMin,
           variation: {
-            id: variationMatch?.uuid ?? variationMatch?.id ?? null,
-            stock: stockValue,
+            id: variation?.uuid ?? variation?.id ?? null,
+            stock: variation?.Stock ?? 0,
           },
-          metadata: e.metadata ?? null,
+          metadata: {
+            ...e.metadata,
+            variation: {
+              uuid: variation?.uuid ?? null,
+              SKU: variation?.SKU ?? null,
+              Stock: variation?.Stock ?? 0,
+              Thickness: variation?.Thickness ?? null,
+              Size: variation?.Size ?? null,
+              Finish: variation?.Finish ?? null,
+              PackSize: variation?.PackSize ?? null,
+              Pcs: variation?.Pcs ?? null,
+              ColorTone: variation?.ColorTone ?? null,
+              Price: variation?.Price ?? null,
+              Per_m2: variation?.Per_m2 ?? null,
+            },
+          },
         };
       });
 
@@ -318,7 +280,7 @@ module.exports = {
       return ctx.internalServerError("Server error");
     }
   },
-  // PUT /api/cart/:id -> update quantity (no strict check)
+
   async update(ctx) {
     try {
       const user = ctx.state.user;
@@ -326,7 +288,6 @@ module.exports = {
 
       const { id } = ctx.params;
       const { quantity } = ctx.request.body ?? {};
-
       if (quantity === undefined) return ctx.badRequest("quantity required");
 
       const item = await strapi.entityService.findOne("api::cart.cart", id, {
@@ -339,7 +300,6 @@ module.exports = {
       const updated = await strapi.entityService.update("api::cart.cart", id, {
         data: { quantity: Number(quantity) },
       });
-
       return ctx.send(updated);
     } catch (err) {
       strapi.log.error("cart.update error", err);
@@ -347,7 +307,6 @@ module.exports = {
     }
   },
 
-  // DELETE /api/cart/:id
   async remove(ctx) {
     try {
       const user = ctx.state.user;

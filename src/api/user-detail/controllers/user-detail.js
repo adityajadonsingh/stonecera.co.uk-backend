@@ -33,10 +33,16 @@ module.exports = {
       const user = ctx.state.user;
       if (!user) return ctx.unauthorized("You must be logged in");
 
-      const record = await strapi.db.query("api::user-detail.user-detail").findOne({
-        where: { user: user.id },
-        populate: { profileImage: true, phoneNumbers: true, savedAddresses: true },
-      });
+      const record = await strapi.db
+        .query("api::user-detail.user-detail")
+        .findOne({
+          where: { user: user.id },
+          populate: {
+            profileImage: true,
+            phoneNumbers: true,
+            savedAddresses: true,
+          },
+        });
 
       const userDetails = record
         ? {
@@ -68,9 +74,16 @@ module.exports = {
 
       const body = ctx.request.body ?? {};
       // Accept payload keys: fullName, phoneNumbers (array), savedAddresses (array), profileImageId (number)
-      const fullName = typeof body.fullName === "string" ? body.fullName : undefined;
-      const phoneNumbers = Array.isArray(body.phoneNumbers) ? body.phoneNumbers : undefined;
-      const savedAddresses = Array.isArray(body.savedAddresses) ? body.savedAddresses : undefined;
+      const firstName =
+        typeof body.firstName === "string" ? body.firstName : undefined;
+      const lastName =
+        typeof body.lastName === "string" ? body.lastName : undefined;
+      const phoneNumbers = Array.isArray(body.phoneNumbers)
+        ? body.phoneNumbers
+        : undefined;
+      const savedAddresses = Array.isArray(body.savedAddresses)
+        ? body.savedAddresses
+        : undefined;
 
       let profileImageId = null;
       if (body.profileImageId !== undefined && body.profileImageId !== null) {
@@ -79,33 +92,48 @@ module.exports = {
       }
 
       // Find existing record for this user
-      const existing = await strapi.db.query("api::user-detail.user-detail").findOne({
-        where: { user: user.id },
-      });
+      const existing = await strapi.db
+        .query("api::user-detail.user-detail")
+        .findOne({
+          where: { user: user.id },
+        });
 
       if (existing) {
         const updateData = {};
-        if (fullName !== undefined) updateData.fullName = fullName;
+        if (firstName !== undefined) updateData.firstName = firstName;
+        if (lastName !== undefined) updateData.lastName = lastName;
         if (phoneNumbers !== undefined) updateData.phoneNumbers = phoneNumbers;
-        if (savedAddresses !== undefined) updateData.savedAddresses = savedAddresses;
+        if (savedAddresses !== undefined)
+          updateData.savedAddresses = savedAddresses;
         // For profileImage: if profileImageId is provided, set it; if explicitly null provided, clear it.
         if (profileImageId !== null) updateData.profileImage = profileImageId;
         else if (body.profileImageId === null) updateData.profileImage = null;
 
-        const updated = await strapi.entityService.update("api::user-detail.user-detail", existing.id, {
-          data: updateData,
-        });
+        const updated = await strapi.entityService.update(
+          "api::user-detail.user-detail",
+          existing.id,
+          {
+            data: updateData,
+          }
+        );
 
         // reload with media/components populated for consistent shape
-        const fetched = await strapi.db.query("api::user-detail.user-detail").findOne({
-          where: { id: updated.id },
-          populate: { profileImage: true, phoneNumbers: true, savedAddresses: true },
-        });
+        const fetched = await strapi.db
+          .query("api::user-detail.user-detail")
+          .findOne({
+            where: { id: updated.id },
+            populate: {
+              profileImage: true,
+              phoneNumbers: true,
+              savedAddresses: true,
+            },
+          });
 
         const userDetails = fetched
           ? {
               id: fetched.id,
-              fullName: fetched.fullName ?? null,
+              firstName: fetched.firstName ?? null,
+              lastName: fetched.lastName ?? null,
               profileImage: normalizeMedia(fetched.profileImage),
               phoneNumbers: fetched.phoneNumbers ?? [],
               savedAddresses: fetched.savedAddresses ?? [],
@@ -123,25 +151,36 @@ module.exports = {
       // Create a new record
       const createData = {
         user: user.id,
-        fullName: fullName ?? null,
+        firstName: firstName ?? null,
+        lastName: lastName ?? null,
         phoneNumbers: phoneNumbers ?? [],
         savedAddresses: savedAddresses ?? [],
       };
       if (profileImageId !== null) createData.profileImage = profileImageId;
 
-      const created = await strapi.entityService.create("api::user-detail.user-detail", {
-        data: createData,
-      });
+      const created = await strapi.entityService.create(
+        "api::user-detail.user-detail",
+        {
+          data: createData,
+        }
+      );
 
-      const fetched = await strapi.db.query("api::user-detail.user-detail").findOne({
-        where: { id: created.id },
-        populate: { profileImage: true, phoneNumbers: true, savedAddresses: true },
-      });
+      const fetched = await strapi.db
+        .query("api::user-detail.user-detail")
+        .findOne({
+          where: { id: created.id },
+          populate: {
+            profileImage: true,
+            phoneNumbers: true,
+            savedAddresses: true,
+          },
+        });
 
       const userDetails = fetched
         ? {
             id: fetched.id,
-            fullName: fetched.fullName ?? null,
+            firstName: firstName ?? null,
+            lastName: lastName ?? null,
             profileImage: normalizeMedia(fetched.profileImage),
             phoneNumbers: fetched.phoneNumbers ?? [],
             savedAddresses: fetched.savedAddresses ?? [],

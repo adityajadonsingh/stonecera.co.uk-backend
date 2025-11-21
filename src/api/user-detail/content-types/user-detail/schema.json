@@ -17,7 +17,10 @@
       "target": "plugin::users-permissions.user",
       "inversedBy": "user_detail"
     },
-    "fullName": {
+    "firstName": {
+      "type": "string"
+    },
+    "lastName": {
       "type": "string"
     },
     "profileImage": {

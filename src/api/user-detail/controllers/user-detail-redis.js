@@ -1,4 +1,3 @@
-// backend/src/api/user-detail/controllers/user-detail-redis.js
 "use strict";
 
 const redisService = require("../../../utils/redis");
@@ -33,7 +32,7 @@ module.exports = {
   async get(ctx) {
     try {
       const user = ctx.state.user;
-      if (!user) return ctx.unauthorized("You must be logged in"); 
+      if (!user) return ctx.unauthorized("You must be logged in");
 
       const client = await redisService.connect();
       const key = `user:details:${user.id}`;
@@ -60,7 +59,8 @@ module.exports = {
       const userDetails = record
         ? {
             id: record.id,
-            fullName: record.fullName ?? null,
+            firstName: record.firstName ?? null,
+            lastName: record.lastName ?? null,
             profileImage: normalizeMedia(record.profileImage),
             phoneNumbers: record.phoneNumbers ?? [],
             savedAddresses: record.savedAddresses ?? [],
@@ -73,9 +73,8 @@ module.exports = {
         email: user.email ?? null,
         userDetails,
       };
-      
 
-      // 3️⃣ save to cache (5 min TTL)
+      // 3️⃣ save to cache (5 min TTL)
       await client.set(key, JSON.stringify(payload), { EX: 300 });
 
       ctx.send({ source: "db", ...payload });

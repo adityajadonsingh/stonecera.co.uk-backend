@@ -1,9 +1,9 @@
-// FILE: backend/src/api/order/controllers/order.js
 "use strict";
 
 /**
  * Order controller with server-side validation for stock and price.
  * - POST /orders/checkout: Validates items, stock, and calculates price on the server before creating an order.
+ * - Automatically decrements variation stock after successful checkout (component-based variations).
  * - GET  /orders: Lists orders for the authenticated user.
  * - GET  /orders/:id: Finds a single order for the authenticated user.
  */
@@ -40,7 +40,9 @@ function makeAbsoluteUrl(path) {
     (strapi?.config?.get && strapi.config.get("server.url")) ||
     process.env.STRAPI_API_URL ||
     `http://localhost:${process.env.PORT || 1337}`;
-  return `${String(base).replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+  return `${String(base).replace(/\/$/, "")}${
+    path.startsWith("/") ? path : `/${path}`
+  }`;
 }
 
 function getFirstImageFromProduct(productPlain) {
@@ -94,6 +96,7 @@ function computeVariationUnitPrice(variation) {
 module.exports = {
   /**
    * Creates a new order after validating items, stock, and calculating prices.
+   * Also decrements variation stock after order creation.
    */
   async checkout(ctx) {
     try {
@@ -113,6 +116,7 @@ module.exports = {
       const validatedItems = [];
       let calculatedSubtotal = 0;
 
+      // 1️⃣ Validate and compute all items
       for (const item of frontendItems) {
         if (!isObject(item)) continue;
 
@@ -124,19 +128,17 @@ module.exports = {
           return ctx.badRequest("Each item must have a product ID.");
         }
 
-        // 1. Fetch the full product with its variations and images explicitly populated
+        // Fetch product with variations and images
         const product = await strapi.entityService.findOne(
           "api::product.product",
           productId,
-          {
-            populate: { variation: true, images: true },
-          }
+          { populate: { variation: true, images: true } }
         );
         if (!product) {
           return ctx.badRequest(`Product with ID ${productId} not found.`);
         }
 
-        // 2. Find the correct variation within the product
+        // Find matching variation
         const variationId = item.variation_id ?? item.uuid ?? null;
         const variation = findVariationFromProduct(product, variationId);
         if (!variation) {
@@ -146,25 +148,24 @@ module.exports = {
         }
         const vp = entityToPlain(variation) ?? variation;
 
-        // 3. Validate stock
+        // Check stock (Stock field is capitalized)
         const stock = Number(vp.Stock ?? vp.stock ?? 0);
         const quantity = Number(item.quantity ?? 1);
         if (quantity > stock) {
           return ctx.badRequest(
-            `Not enough stock for product ${product.name}. Requested: ${quantity}, Available: ${stock}.`
+            `Not enough stock for ${product.name}. Requested: ${quantity}, Available: ${stock}.`
           );
         }
 
-        // 4. Calculate price on the server
+        // Compute server-side pricing
         const unit_price = computeVariationUnitPrice(variation);
         const subtotal = Number((unit_price * quantity).toFixed(2));
         calculatedSubtotal += subtotal;
 
-        // 5. Build the validated item for the order component
         validatedItems.push({
           product: productId,
           product_name: product.name,
-          variation_id: String(vp.id ?? variationId),
+          variation_id: String(vp.uuid ?? vp.id ?? variationId),
           sku: vp.SKU ?? vp.sku ?? null,
           quantity,
           unit_price,
@@ -172,25 +173,27 @@ module.exports = {
         });
       }
 
-      // Calculate final total on the server
+      // 2️⃣ Calculate total
       const shippingCost = Number(totalsFromFrontend.shippingCost ?? 0);
       const tailLiftCost = Number(totalsFromFrontend.tailLift ?? 0);
       const serverTotal = Number(
         (calculatedSubtotal + shippingCost + tailLiftCost).toFixed(2)
       );
 
-      // Create the order
-      const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 9000 + 1000)}`;
+      // 3️⃣ Create the order
+      const orderNumber = `ORD-${Date.now()}-${Math.floor(
+        Math.random() * 9000 + 1000
+      )}`;
       const data = {
         orderNumber,
         items: validatedItems,
         shipping,
         totals: {
-          ...totalsFromFrontend, // Keep client-side totals for reference
+          ...totalsFromFrontend,
           cartSubtotal: Number(calculatedSubtotal.toFixed(2)),
-          total: serverTotal, // Overwrite with server-calculated total
+          total: serverTotal,
         },
-        contact, 
+        contact,
         shipping_address: shippingAddress,
         status: "pending",
         metadata: {
@@ -199,18 +202,79 @@ module.exports = {
         },
       };
 
-      if (user) {
-        data.user = user.id;
-      }
+      if (user) data.user = user.id;
 
       const createdOrder = await strapi.entityService.create(
         "api::order.order",
-        {
-          data,
-        }
+        { data }
       );
 
-      // TODO: Decrement stock here if desired
+      // 4️⃣ Decrement stock for each variation purchased (component-based variations)
+      // We'll update the product entity's `variation` component array replacing the changed item(s).
+      for (const item of validatedItems) {
+        try {
+          // Re-fetch the product to get the latest variation array
+          const product = await strapi.entityService.findOne(
+            "api::product.product",
+            item.product,
+            { populate: { variation: true } }
+          );
+          if (!product) {
+            strapi.log.error(
+              `Product ${item.product} not found while updating stock.`
+            );
+            continue;
+          }
+
+          const rawVariations = product.variation ?? [];
+          // ensure plain array of variations
+          const plainVariations = ensureArray(rawVariations);
+
+          // Find matching variation index by uuid or id
+          const targetId = String(item.variation_id ?? "");
+          let matched = false;
+          const updatedVariations = plainVariations.map((v) => {
+            const vp = entityToPlain(v) ?? v ?? {};
+            const vid = String(vp.uuid ?? vp.id ?? "");
+            if (vid === targetId) {
+              matched = true;
+              const oldStock = Number(vp.Stock ?? vp.stock ?? 0);
+              const newStock = Math.max(
+                0,
+                oldStock - Number(item.quantity ?? 0)
+              );
+              // Return a new object with updated Stock (respect original keys)
+              return { ...vp, Stock: newStock };
+            }
+            return vp;
+          });
+
+          if (!matched) {
+            strapi.log.warn(
+              `Variation ${item.variation_id} not found inside product ${item.product} when decrementing stock.`
+            );
+            continue;
+          }
+
+          // Persist the updated variations back to the product (component update)
+          await strapi.entityService.update(
+            "api::product.product",
+            item.product,
+            {
+              data: { variation: updatedVariations },
+            }
+          );
+
+          strapi.log.info(
+            `🟢 Stock updated (product ${item.product}) variation ${item.variation_id}`
+          );
+        } catch (err) {
+          strapi.log.error(
+            "❌ Failed to update variation stock (component):",
+            err
+          );
+        }
+      }
 
       return ctx.send(createdOrder);
     } catch (err) {
@@ -219,49 +283,144 @@ module.exports = {
     }
   },
 
-  /**
-   * Lists orders for the currently authenticated user.
-   */
   async find(ctx) {
-    try {
-      const user = ctx.state.user;
-      if (!user) return ctx.unauthorized();
+    const { user } = ctx.state;
 
-      const orders = await strapi.entityService.findMany("api::order.order", {
-        filters: { user: user.id },
-        populate: { items: { populate: ["product"] } }, // Also populate the product within each item
-        sort: { createdAt: "desc" },
-      });
+    const entity = await strapi.db.query("api::order.order").findMany({
+      where: { user: user?.id },
+      populate: {
+        items: {
+          populate: {
+            product: {
+              populate: {
+                variation: true,
+                images: true,
+                thumbnail: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-      return ctx.send(orders);
-    } catch (err) {
-      strapi.log.error("order.find error", err);
-      return ctx.internalServerError("Server error");
-    }
+    const sanitizedOrders = entity.map((order) => ({
+      ...order,
+      items: order.items.map((item) => {
+        const product = item.product;
+
+        // Find the matching variation
+        const variation = product?.variations?.find(
+          (v) => v.uuid === Number(item.variation_id)
+        );
+
+        // Clean text prefixes like “THICKNESS ” and “SIZE ”
+        const cleanText = (text) =>
+          typeof text === "string"
+            ? text.replace(/^THICKNESS\s*/i, "").replace(/^SIZE\s*/i, "")
+            : text;
+
+        return {
+          id: item.id,
+          product_name: item.product_name,
+          sku: item.sku,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          subtotal: item.subtotal,
+          product: {
+            id: product?.id,
+            name: product?.title || product?.name,
+            image: product?.thumbnail?.url || null,
+          },
+          variation: variation
+            ? {
+                uuid: variation.uuid,
+                SKU: variation.SKU,
+                Stock: variation.Stock,
+                Thickness: cleanText(variation.Thickness),
+                Size: cleanText(variation.Size),
+                Finish: variation.Finish,
+                ColorTone: variation.ColorTone,
+                Price: variation.Price,
+                Per_m2: variation.Per_m2,
+              }
+            : null,
+        };
+      }),
+    }));
+
+    return sanitizedOrders;
   },
 
-  /**
-   * Finds a single order for the authenticated user, ensuring ownership.
-   */
   async findOne(ctx) {
-    try {
-      const user = ctx.state.user;
-      if (!user) return ctx.unauthorized();
+    const { id } = ctx.params;
 
-      const { id } = ctx.params;
-      const order = await strapi.entityService.findOne("api::order.order", id, {
-        populate: true,
-      });
-      if (!order) return ctx.notFound();
+    const entity = await strapi.db.query("api::order.order").findOne({
+      where: { id: Number(id) },
+      populate: {
+        items: {
+          populate: {
+            product: {
+              populate: {
+                variation: true,
+                images: true,
+                thumbnail: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
-      if (String(order.user?.id) !== String(user.id)) {
-        return ctx.unauthorized("You are not the owner of this order.");
-      }
-
-      return ctx.send(order);
-    } catch (err) {
-      strapi.log.error("order.findOne error", err);
-      return ctx.internalServerError("Server error");
+    if (!entity) {
+      return ctx.notFound("Order not found");
     }
+
+    const sanitizedOrder = {
+      ...entity,
+      items: entity.items.map((item) => {
+        const product = item.product;
+
+        const variation = product?.variation?.find(
+          (v) => Number(v.uuid) === Number(item.variation_id)
+        );
+
+        const cleanText = (text) =>
+          typeof text === "string"
+            ? text.replace(/^THICKNESS\s*/i, "").replace(/^SIZE\s*/i, "")
+            : text;
+
+        return {
+          id: item.id,
+          product_name: item.product_name,
+          sku: item.sku,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          subtotal: item.subtotal,
+
+          product: {
+            id: product?.id,
+            name: product?.title || product?.name,
+            thumbnail: product?.thumbnail?.url || null,
+            images: product?.images?.map((img) => img?.url) || [],
+          },
+
+          variation: variation
+            ? {
+                uuid: variation.uuid,
+                SKU: variation.SKU,
+                Stock: variation.Stock,
+                Thickness: cleanText(variation.Thickness),
+                Size: cleanText(variation.Size),
+                Finish: variation.Finish,
+                ColorTone: variation.ColorTone,
+                Price: variation.Price,
+                Per_m2: variation.Per_m2,
+              }
+            : null,
+        };
+      }),
+    };
+
+    return sanitizedOrder;
   },
 };
