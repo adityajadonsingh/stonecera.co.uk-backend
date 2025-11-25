@@ -1,3 +1,5 @@
+// File: src/api/order/controllers/order.js
+
 "use strict";
 
 /**
@@ -98,6 +100,57 @@ module.exports = {
    * Creates a new order after validating items, stock, and calculating prices.
    * Also decrements variation stock after order creation.
    */
+
+  // NEW: createStripeSession controller
+  async createStripeSession(ctx) {
+    const Stripe = require("stripe").Stripe;
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+
+    try {
+      const { orderId } = ctx.request.body;
+
+      if (!orderId) {
+        return ctx.badRequest("orderId is required");
+      }
+
+      // Fetch order
+      const order = await strapi.entityService.findOne(
+        "api::order.order",
+        orderId,
+        { populate: { items: true } }
+      );
+
+      if (!order) {
+        return ctx.notFound("Order not found");
+      }
+
+      // Create Checkout Session
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        payment_method_types: ["card"],
+        success_url: `${process.env.FRONTEND_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel`,
+        metadata: {
+          orderId: orderId,
+        },
+        line_items: order.items.map((item) => ({
+          price_data: {
+            currency: "gbp",
+            product_data: {
+              name: item.product_name,
+            },
+            unit_amount: Math.round(item.unit_price * 100),
+          },
+          quantity: item.quantity,
+        })),
+      });
+
+      return ctx.send({ sessionId: session.id });
+    } catch (err) {
+      console.error("❌ Stripe session creation failed:", err);
+      return ctx.internalServerError("Failed to create checkout session");
+    }
+  },
   async checkout(ctx) {
     try {
       const body = ctx.request.body ?? {};
