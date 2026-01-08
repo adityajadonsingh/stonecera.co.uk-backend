@@ -53,6 +53,18 @@
       "relation": "oneToMany",
       "target": "api::cart.cart",
       "mappedBy": "product"
+    },
+    "wishlists": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::wishlist.wishlist",
+      "mappedBy": "products"
+    },
+    "users": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "wishlist"
     }
   }
 }

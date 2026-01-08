@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_homepage_select_categories",
+  "info": {
+    "displayName": "Select Category"
+  },
+  "options": {},
+  "attributes": {
+    "category": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::category.category"
+    },
+    "startingFrom": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_homepage_review_sections",
+  "info": {
+    "displayName": "Review Section"
+  },
+  "options": {},
+  "attributes": {
+    "sectionTitle": {
+      "type": "string"
+    },
+    "sectionSubtitle": {
+      "type": "text"
+    },
+    "reviews": {
+      "type": "component",
+      "component": "homepage.review",
+      "repeatable": true
+    }
+  },
+  "config": {}
+}

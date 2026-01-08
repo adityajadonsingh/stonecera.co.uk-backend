@@ -36,16 +36,12 @@
     "status": {
       "type": "enumeration",
       "default": "pending",
-      "enum": [
-        "pending",
-        "paid",
-        "processing",
-        "shipped",
-        "cancelled"
-      ]
+      "enum": ["pending", "paid", "processing", "shipped", "cancelled"]
     },
     "metadata": {
       "type": "json"
-    }
+    },
+    "stripe_session_id": { "type": "string" },
+    "stripe_payment_intent": { "type": "string" }
   }
 }

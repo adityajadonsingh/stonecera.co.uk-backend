@@ -1,0 +1,45 @@
+{
+  "kind": "singleType",
+  "collectionName": "footer_details",
+  "info": {
+    "singularName": "footer-detail",
+    "pluralName": "footer-details",
+    "displayName": "FooterDetail"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "companyPhoneNumbers": {
+      "type": "component",
+      "component": "input-fields.phone",
+      "repeatable": true
+    },
+    "companyEmails": {
+      "type": "component",
+      "component": "input-fields.email",
+      "repeatable": true
+    },
+    "companyAddress": {
+      "type": "component",
+      "component": "input-fields.address",
+      "repeatable": false
+    },
+    "facebookLink": {
+      "type": "string"
+    },
+    "twitterLink": {
+      "type": "string"
+    },
+    "instagramLink": {
+      "type": "string"
+    },
+    "linkedinLink": {
+      "type": "string"
+    },
+    "pinterestLink": {
+      "type": "string"
+    }
+  }
+}

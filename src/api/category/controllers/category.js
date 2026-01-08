@@ -67,6 +67,7 @@ module.exports = createCoreController(
         if (!seen.has(cat.slug)) {
           seen.add(cat.slug);
           uniqueCategories.push({
+            id: cat.id,
             name: cat.name,
             slug: cat.slug,
             categoryDiscount: cat.categoryDiscount,
@@ -168,7 +169,7 @@ module.exports = createCoreController(
       ];
       priceRanges.forEach((r) => (filterCounts.price[r.label] = 0));
 
-      // 4️⃣ Filter products by all active filters (for display)
+      // 4️⃣ Filter products by all active filters 
       const filteredProducts = category.products
         .map((prod) => {
           const filteredVariations = prod.variation.filter((v) => {
@@ -371,6 +372,7 @@ module.exports = createCoreController(
           },
           priceBeforeDiscount,
           product: {
+            id: prod.id,
             name: prod.name,
             slug: prod.slug,
             productDiscount: prod.productDiscount ?? 0,
@@ -389,6 +391,7 @@ module.exports = createCoreController(
 
       // 8️⃣ Return
       return {
+        id: category.id,
         name: category.name,
         slug: category.slug,
         categoryDiscount: category.categoryDiscount,

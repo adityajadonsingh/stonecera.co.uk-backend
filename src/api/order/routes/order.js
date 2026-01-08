@@ -7,8 +7,7 @@ module.exports = {
       path: "/orders/checkout",
       handler: "order.checkout",
       config: {
-        // public checkout; change if you want to require authentication
-        // leave config empty so route is public
+        auth: { strategies: ["users-permissions"] }, 
       },
     },
     {
@@ -16,7 +15,7 @@ module.exports = {
       path: "/orders",
       handler: "order.find",
       config: {
-        auth: { strategies: ["users-permissions"] }, // authenticated: list user's orders
+        auth: { strategies: ["users-permissions"] },
       },
     },
     {

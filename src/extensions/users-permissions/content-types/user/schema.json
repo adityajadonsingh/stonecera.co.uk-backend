@@ -77,6 +77,12 @@
       "relation": "oneToOne",
       "target": "api::user-detail.user-detail",
       "mappedBy": "user"
+    },
+    "wishlist": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::product.product",
+      "inversedBy": "users"
     }
   }
 }

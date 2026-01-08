@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_homepage_feature_categories",
+  "info": {
+    "displayName": "Feature Categories"
+  },
+  "options": {},
+  "attributes": {
+    "section_title": {
+      "type": "string"
+    },
+    "section_subtitle": {
+      "type": "text"
+    },
+    "categories": {
+      "type": "component",
+      "component": "homepage.select-category",
+      "repeatable": true,
+      "min": 3,
+      "max": 3
+    }
+  },
+  "config": {}
+}

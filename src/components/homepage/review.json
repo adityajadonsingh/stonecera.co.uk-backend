@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_homepage_reviews",
+  "info": {
+    "displayName": "Review"
+  },
+  "options": {},
+  "attributes": {
+    "name": {
+      "type": "string"
+    },
+    "stars": {
+      "type": "integer",
+      "max": 5
+    },
+    "review": {
+      "type": "text"
+    },
+    "isActive": {
+      "type": "boolean"
+    }
+  },
+  "config": {}
+}

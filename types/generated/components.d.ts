@@ -1,5 +1,93 @@
 import type { Schema, Struct } from '@strapi/strapi';
 
+export interface HomepageBanner extends Struct.ComponentSchema {
+  collectionName: 'components_homepage_banners';
+  info: {
+    displayName: 'Banner';
+  };
+  attributes: {
+    bannerImage: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios'
+    >;
+    heading: Schema.Attribute.String;
+    link: Schema.Attribute.String;
+    subHeading: Schema.Attribute.Text;
+  };
+}
+
+export interface HomepageBestSeller extends Struct.ComponentSchema {
+  collectionName: 'components_homepage_best_sellers';
+  info: {
+    displayName: 'Best Seller';
+  };
+  attributes: {
+    products: Schema.Attribute.Relation<'oneToMany', 'api::product.product'>;
+    section_subtitle: Schema.Attribute.Text;
+    section_title: Schema.Attribute.String;
+  };
+}
+
+export interface HomepageFeatureCategories extends Struct.ComponentSchema {
+  collectionName: 'components_homepage_feature_categories';
+  info: {
+    displayName: 'Feature Categories';
+  };
+  attributes: {
+    categories: Schema.Attribute.Component<'homepage.select-category', true> &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 3;
+          min: 3;
+        },
+        number
+      >;
+    section_subtitle: Schema.Attribute.Text;
+    section_title: Schema.Attribute.String;
+  };
+}
+
+export interface HomepageReview extends Struct.ComponentSchema {
+  collectionName: 'components_homepage_reviews';
+  info: {
+    displayName: 'Review';
+  };
+  attributes: {
+    isActive: Schema.Attribute.Boolean;
+    name: Schema.Attribute.String;
+    review: Schema.Attribute.Text;
+    stars: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 5;
+        },
+        number
+      >;
+  };
+}
+
+export interface HomepageReviewSection extends Struct.ComponentSchema {
+  collectionName: 'components_homepage_review_sections';
+  info: {
+    displayName: 'Review Section';
+  };
+  attributes: {
+    reviews: Schema.Attribute.Component<'homepage.review', true>;
+    sectionSubtitle: Schema.Attribute.Text;
+    sectionTitle: Schema.Attribute.String;
+  };
+}
+
+export interface HomepageSelectCategory extends Struct.ComponentSchema {
+  collectionName: 'components_homepage_select_categories';
+  info: {
+    displayName: 'Select Category';
+  };
+  attributes: {
+    category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
+    startingFrom: Schema.Attribute.String;
+  };
+}
+
 export interface InputFieldsAddress extends Struct.ComponentSchema {
   collectionName: 'components_input_fields_addresses';
   info: {
@@ -10,6 +98,16 @@ export interface InputFieldsAddress extends Struct.ComponentSchema {
     city: Schema.Attribute.String;
     label: Schema.Attribute.String;
     pincode: Schema.Attribute.String;
+  };
+}
+
+export interface InputFieldsEmail extends Struct.ComponentSchema {
+  collectionName: 'components_input_fields_emails';
+  info: {
+    displayName: 'email';
+  };
+  attributes: {
+    email: Schema.Attribute.Email;
   };
 }
 
@@ -143,7 +241,14 @@ export interface SeoMeta extends Struct.ComponentSchema {
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
+      'homepage.banner': HomepageBanner;
+      'homepage.best-seller': HomepageBestSeller;
+      'homepage.feature-categories': HomepageFeatureCategories;
+      'homepage.review': HomepageReview;
+      'homepage.review-section': HomepageReviewSection;
+      'homepage.select-category': HomepageSelectCategory;
       'input-fields.address': InputFieldsAddress;
+      'input-fields.email': InputFieldsEmail;
       'input-fields.phone': InputFieldsPhone;
       'order.order-item': OrderOrderItem;
       'product.product-variation': ProductProductVariation;

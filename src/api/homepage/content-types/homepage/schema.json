@@ -1,0 +1,35 @@
+{
+  "kind": "singleType",
+  "collectionName": "homepages",
+  "info": {
+    "singularName": "homepage",
+    "pluralName": "homepages",
+    "displayName": "Homepage"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "banner": {
+      "type": "component",
+      "component": "homepage.banner",
+      "repeatable": true
+    },
+    "featured_categories_section": {
+      "type": "component",
+      "component": "homepage.feature-categories",
+      "repeatable": false
+    },
+    "best_seller_section": {
+      "type": "component",
+      "component": "homepage.best-seller",
+      "repeatable": false
+    },
+    "customer_reviews_section": {
+      "type": "component",
+      "component": "homepage.review-section",
+      "repeatable": false
+    }
+  }
+}

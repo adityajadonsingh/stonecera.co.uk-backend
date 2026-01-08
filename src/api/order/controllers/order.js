@@ -101,7 +101,7 @@ module.exports = {
    * Also decrements variation stock after order creation.
    */
 
-  // NEW: createStripeSession controller
+  // createStripeSession controller
   async createStripeSession(ctx) {
     const Stripe = require("stripe").Stripe;
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -128,8 +128,8 @@ module.exports = {
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         payment_method_types: ["card"],
-        success_url: `${process.env.FRONTEND_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel`,
+        success_url: `${process.env.PUBLIC_URL}/order/success/${orderId}`,
+        cancel_url: `${process.env.PUBLIC_URL}/checkout`,
         metadata: {
           orderId: orderId,
         },
@@ -145,7 +145,13 @@ module.exports = {
         })),
       });
 
-      return ctx.send({ sessionId: session.id });
+      await strapi.entityService.update("api::order.order", orderId, {
+        data: {
+          stripe_session_id: session.id,
+        },
+      });
+
+      return ctx.send({ url: session.url });
     } catch (err) {
       console.error("❌ Stripe session creation failed:", err);
       return ctx.internalServerError("Failed to create checkout session");
@@ -256,6 +262,9 @@ module.exports = {
       };
 
       if (user) data.user = user.id;
+      data.status = "pending";
+      data.stripe_session_id = null;
+      data.stripe_payment_intent = null;
 
       const createdOrder = await strapi.entityService.create(
         "api::order.order",
