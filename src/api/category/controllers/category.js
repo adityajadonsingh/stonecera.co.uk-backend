@@ -105,6 +105,7 @@ module.exports = createCoreController(
       const category = await strapi.db.query("api::category.category").findOne({
         where: { slug },
         populate: {
+          bannerImg: { select: ["id", "url", "alternativeText"] },
           images: { select: ["id", "url", "alternativeText"] },
           products: {
             select: [
@@ -169,7 +170,7 @@ module.exports = createCoreController(
       ];
       priceRanges.forEach((r) => (filterCounts.price[r.label] = 0));
 
-      // 4️⃣ Filter products by all active filters 
+      // 4️⃣ Filter products by all active filters
       const filteredProducts = category.products
         .map((prod) => {
           const filteredVariations = prod.variation.filter((v) => {
@@ -335,7 +336,7 @@ module.exports = createCoreController(
         const v = chosenVariation;
         const perM2 = typeof v?.Per_m2 === "number" ? v.Per_m2 : 0;
         const pack = typeof v?.PackSize === "number" ? v.PackSize : 0;
-        const price = perM2 && pack ? parseFloat((perM2 * pack).toFixed(2)) : 0;
+        const price = perM2 && pack ? Math.floor(perM2 * pack) : 0;
 
         // compute discounts
         const prodDisc = prod.productDiscount ?? 0;
@@ -351,13 +352,14 @@ module.exports = createCoreController(
         if (usedDiscount > 0) {
           const mul = 1 + usedDiscount / 100;
           priceBeforeDiscount = {
-            Per_m2: parseFloat((perM2 * mul).toFixed(2)),
-            Price: parseFloat((price * mul).toFixed(2)),
+            Per_m2: Math.ceil(perM2 * mul),
+            Price: Math.ceil(price * mul),
           };
         }
 
         return {
-          variation: {
+          variations: prod.variation,
+          selectedVariation: {
             id: v.uuid,
             SKU: v.SKU,
             Per_m2: perM2,
@@ -394,6 +396,7 @@ module.exports = createCoreController(
         id: category.id,
         name: category.name,
         slug: category.slug,
+        bannerImg: category.bannerImg,
         categoryDiscount: category.categoryDiscount,
         short_description: category.short_description,
         images: category.images?.map((img) => ({
