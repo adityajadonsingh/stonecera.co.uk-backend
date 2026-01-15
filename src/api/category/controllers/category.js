@@ -397,6 +397,7 @@ module.exports = createCoreController(
         name: category.name,
         slug: category.slug,
         bannerImg: category.bannerImg,
+        footerContent: category.footer_content,
         categoryDiscount: category.categoryDiscount,
         short_description: category.short_description,
         images: category.images?.map((img) => ({

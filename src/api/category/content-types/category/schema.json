@@ -55,6 +55,13 @@
     "categoryDiscount": {
       "type": "integer",
       "default": 0
+    },
+    "footer_content": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      }
     }
   }
 }

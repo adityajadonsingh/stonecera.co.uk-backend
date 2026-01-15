@@ -31,7 +31,9 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       const normalized = variations.map((v) => {
         const per = typeof v.Per_m2 === "number" ? v.Per_m2 : 0;
         const pack = typeof v.PackSize === "number" ? v.PackSize : 0;
-        const price = per && pack ? parseFloat((per * pack).toFixed(2)) : 0;
+        const raw = per && pack ? per * pack : 0;
+        const price = Math.ceil(raw);
+
         return {
           id: v.uuid || v.id || null,
           Per_m2: per,
@@ -55,8 +57,8 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       if (used > 0 && cheapest) {
         const mul = 1 + used / 100;
         priceBeforeDiscount = {
-          Per_m2: parseFloat((cheapest.Per_m2 * mul).toFixed(2)),
-          Price: parseFloat((cheapest.Price * mul).toFixed(2)),
+          Per_m2: Math.ceil(cheapest.Per_m2 * mul),
+          Price: Math.ceil(cheapest.Price * mul),
         };
       }
 
@@ -118,7 +120,8 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
     const variations = (prod.variation || []).map((v) => {
       const per = typeof v.Per_m2 === "number" ? v.Per_m2 : 0;
       const pack = typeof v.PackSize === "number" ? v.PackSize : 0;
-      const price = per && pack ? parseFloat((per * pack).toFixed(2)) : 0;
+      const raw = per && pack ? per * pack : 0;
+      const price = Math.ceil(raw);
       return {
         id: v.uuid || v.id || null,
         SKU: v.SKU,
@@ -148,8 +151,8 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
     if (used > 0 && cheapest) {
       const mul = 1 + used / 100;
       priceBeforeDiscount = {
-        Per_m2: parseFloat((cheapest.Per_m2 * mul).toFixed(2)),
-        Price: parseFloat((cheapest.Price * mul).toFixed(2)),
+        Per_m2: Math.ceil(cheapest.Per_m2 * mul),
+        Price: Math.ceil(cheapest.Price * mul),
       };
     }
 
