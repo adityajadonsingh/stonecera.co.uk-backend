@@ -135,18 +135,10 @@ module.exports = createCoreController(
             typeof v.PackSize === "number"
               ? v.PackSize
               : parseFloat(v.PackSize) || 0;
-          const price =
-            typeof v.Price === "number" ? v.Price : parseFloat(v.Price) || 0;
 
-          // ✅ Intelligent fallback:
-          if (!price && per_m2 && pack) {
-            v.Price = parseFloat((pack * per_m2).toFixed(2));
-          } else if (!per_m2 && price && pack) {
-            v.Per_m2 = parseFloat((price / pack).toFixed(2));
-          } else {
-            v.Price = price;
-            v.Per_m2 = per_m2;
-          }
+          const raw = per_m2 && pack ? per_m2 * pack : 0;
+          v.Price = Math.floor(raw);
+          v.Per_m2 = per_m2;
         });
       });
 
@@ -336,7 +328,7 @@ module.exports = createCoreController(
         const v = chosenVariation;
         const perM2 = typeof v?.Per_m2 === "number" ? v.Per_m2 : 0;
         const pack = typeof v?.PackSize === "number" ? v.PackSize : 0;
-        const price = perM2 && pack ? Math.floor(perM2 * pack) : 0;
+        const price = Math.floor(perM2 * pack);
 
         // compute discounts
         const prodDisc = prod.productDiscount ?? 0;
@@ -351,9 +343,10 @@ module.exports = createCoreController(
         let priceBeforeDiscount = null;
         if (usedDiscount > 0) {
           const mul = 1 + usedDiscount / 100;
+
           priceBeforeDiscount = {
-            Per_m2: Math.ceil(perM2 * mul),
-            Price: Math.ceil(price * mul),
+            Per_m2: Math.floor(perM2 * mul),
+            Price: Math.floor(price * mul),
           };
         }
 

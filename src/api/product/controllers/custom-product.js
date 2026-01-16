@@ -32,7 +32,7 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
         const per = typeof v.Per_m2 === "number" ? v.Per_m2 : 0;
         const pack = typeof v.PackSize === "number" ? v.PackSize : 0;
         const raw = per && pack ? per * pack : 0;
-        const price = Math.ceil(raw);
+        const price = Math.floor(raw);
 
         return {
           id: v.uuid || v.id || null,
@@ -57,8 +57,8 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       if (used > 0 && cheapest) {
         const mul = 1 + used / 100;
         priceBeforeDiscount = {
-          Per_m2: Math.ceil(cheapest.Per_m2 * mul),
-          Price: Math.ceil(cheapest.Price * mul),
+          Per_m2: Math.floor(cheapest.Per_m2 * mul),
+          Price: Math.floor(cheapest.Price * mul),
         };
       }
 
@@ -121,7 +121,7 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       const per = typeof v.Per_m2 === "number" ? v.Per_m2 : 0;
       const pack = typeof v.PackSize === "number" ? v.PackSize : 0;
       const raw = per && pack ? per * pack : 0;
-      const price = Math.ceil(raw);
+      const price = Math.floor(raw);
       return {
         id: v.uuid || v.id || null,
         SKU: v.SKU,
@@ -151,8 +151,8 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
     if (used > 0 && cheapest) {
       const mul = 1 + used / 100;
       priceBeforeDiscount = {
-        Per_m2: Math.ceil(cheapest.Per_m2 * mul),
-        Price: Math.ceil(cheapest.Price * mul),
+        Per_m2: Math.floor(cheapest.Per_m2 * mul),
+        Price: Math.floor(cheapest.Price * mul),
       };
     }
 
