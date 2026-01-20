@@ -160,6 +160,7 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       id: prod.id,
       name: prod.name,
       slug: prod.slug,
+      description: prod.description,
       productDiscount: prod.productDiscount ?? 0,
       images:
         (prod.images || []).map((img) => ({

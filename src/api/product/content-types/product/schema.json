@@ -65,6 +65,13 @@
       "relation": "manyToMany",
       "target": "plugin::users-permissions.user",
       "mappedBy": "wishlist"
+    },
+    "description": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      }
     }
   }
 }
