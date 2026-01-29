@@ -72,6 +72,12 @@
       "options": {
         "preset": "defaultHtml"
       }
+    },
+    "product_reviews": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product-review.product-review",
+      "mappedBy": "product"
     }
   }
 }
