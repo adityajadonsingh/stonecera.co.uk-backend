@@ -224,6 +224,7 @@ export interface SeoMeta extends Struct.ComponentSchema {
   attributes: {
     canonical_tag: Schema.Attribute.String;
     meta_description: Schema.Attribute.Text;
+    meta_keyword: Schema.Attribute.Text;
     meta_title: Schema.Attribute.String;
     og_description: Schema.Attribute.Text;
     og_image: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;

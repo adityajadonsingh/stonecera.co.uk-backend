@@ -30,6 +30,11 @@
       "type": "component",
       "component": "homepage.review-section",
       "repeatable": false
+    },
+    "seo": {
+      "type": "component",
+      "component": "seo.meta",
+      "repeatable": false
     }
   }
 }

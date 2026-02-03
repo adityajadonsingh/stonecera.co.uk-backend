@@ -144,6 +144,12 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
           fields: ["name", "feedback", "stars", "createdAt"],
           sort: { createdAt: "desc" },
         },
+        seo: {
+          populate: {
+            og_image: true,
+            twitter_image: true,
+          },
+        },
       },
       publicationState: "live",
       limit: 1,
@@ -196,7 +202,26 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
     }
 
     const reviews = await getHomepageReviews(strapi);
+    /* ================= SEO ================= */
+    const seo = prod.seo
+      ? {
+          meta_title: prod.seo.meta_title || "",
+          meta_description: prod.seo.meta_description || "",
+          meta_keyword: prod.seo.meta_keyword || "",
+          canonical_tag: prod.seo.canonical_tag || "",
+          robots: prod.seo.robots || "",
+          og_title: prod.seo.og_title || "",
+          og_description: prod.seo.og_description || "",
+          twitter_title: prod.seo.twitter_title || "",
+          twitter_description: prod.seo.twitter_description || "",
 
+          og_image: prod.seo.og_image ? prod.seo.og_image.url : null,
+
+          twitter_image: prod.seo.twitter_image
+            ? prod.seo.twitter_image.url
+            : null,
+        }
+      : null;
     return {
       id: prod.id,
       name: prod.name,
@@ -226,6 +251,7 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
           ? new Date(r.createdAt).toISOString().split("T")[0]
           : null,
       })),
+      seo,
     };
   },
 }));

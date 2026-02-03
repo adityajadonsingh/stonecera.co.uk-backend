@@ -47,11 +47,6 @@
       "target": "api::product.product",
       "mappedBy": "category"
     },
-    "seo": {
-      "type": "component",
-      "component": "seo.meta",
-      "repeatable": false
-    },
     "categoryDiscount": {
       "type": "integer",
       "default": 0
@@ -62,6 +57,11 @@
       "options": {
         "preset": "defaultHtml"
       }
+    },
+    "seo": {
+      "type": "component",
+      "component": "seo.meta",
+      "repeatable": false
     }
   }
 }

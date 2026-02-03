@@ -11,6 +11,9 @@
     "meta_description": {
       "type": "text"
     },
+    "meta_keyword": {
+      "type": "text"
+    },
     "og_title": {
       "type": "string"
     },

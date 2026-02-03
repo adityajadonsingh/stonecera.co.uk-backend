@@ -40,6 +40,11 @@
     },
     "author_name": {
       "type": "string"
+    },
+    "seo": {
+      "type": "component",
+      "component": "seo.meta",
+      "repeatable": false
     }
   }
 }

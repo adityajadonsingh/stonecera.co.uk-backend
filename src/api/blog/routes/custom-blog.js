@@ -4,8 +4,8 @@ module.exports = {
   routes: [
     {
       method: "GET",
-      path: "/blogs",
-      handler: "blog.find",
+      path: "/blogs/:slug",
+      handler: "custom-blog.findOne",
       config: {
         auth: false,
       },

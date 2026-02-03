@@ -48,8 +48,14 @@ module.exports = {
               reviews: true,
             },
           },
+          seo: {
+            populate: {
+              og_image: true,
+              twitter_image: true,
+            },
+          },
         },
-      }
+      },
     );
 
     if (!entry) return ctx.notFound("Homepage not found");
@@ -222,6 +228,27 @@ module.exports = {
         : null,
     }));
 
+    /* ================= SEO ================= */
+    const seo = entry.seo
+      ? {
+          meta_title: entry.seo.meta_title || "",
+          meta_description: entry.seo.meta_description || "",
+          meta_keyword: entry.seo.meta_keyword || "",
+          canonical_tag: entry.seo.canonical_tag || "",
+          robots: entry.seo.robots || "",
+          og_title: entry.seo.og_title || "",
+          og_description: entry.seo.og_description || "",
+          twitter_title: entry.seo.twitter_title || "",
+          twitter_description: entry.seo.twitter_description || "",
+
+          og_image: entry.seo.og_image ? entry.seo.og_image.url : null,
+
+          twitter_image: entry.seo.twitter_image
+            ? entry.seo.twitter_image.url
+            : null,
+        }
+      : null;
+
     /* ============ FINAL RESPONSE ============= */
     return {
       banner,
@@ -229,6 +256,7 @@ module.exports = {
       bestSeller,
       reviews,
       blogs,
+      seo,
     };
   },
 };

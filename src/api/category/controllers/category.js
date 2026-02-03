@@ -90,7 +90,7 @@ module.exports = createCoreController(
       const { slug } = ctx.params;
       const { price, colorTone, finish, thickness, size } = ctx.query;
 
-      // 1️⃣ Parse filters
+      // Parse filters
       const filters = {};
       if (price) {
         const [minPrice, maxPrice] = price.split("-").map(Number);
@@ -101,7 +101,7 @@ module.exports = createCoreController(
       if (thickness) filters["variation.Thickness"] = thickness.trim();
       if (size) filters["variation.Size"] = size.trim();
 
-      // 2️⃣ Fetch category with products + variations
+      // Fetch category with products + variations
       const category = await strapi.db.query("api::category.category").findOne({
         where: { slug },
         populate: {
@@ -120,7 +120,12 @@ module.exports = createCoreController(
               variation: true,
             },
           },
-          seo: true,
+          seo: {
+            populate: {
+              og_image: true,
+              twitter_image: true,
+            },
+          },
         },
       });
 
@@ -142,7 +147,7 @@ module.exports = createCoreController(
         });
       });
 
-      // 3️⃣ Prepare base filter counts
+      // Prepare base filter counts
       const filterCounts = {
         price: {},
         colorTone: Object.fromEntries(ENUMS.colorTone.map((opt) => [opt, 0])),
@@ -162,7 +167,7 @@ module.exports = createCoreController(
       ];
       priceRanges.forEach((r) => (filterCounts.price[r.label] = 0));
 
-      // 4️⃣ Filter products by all active filters
+      // Filter products by all active filters
       const filteredProducts = category.products
         .map((prod) => {
           const filteredVariations = prod.variation.filter((v) => {
@@ -240,7 +245,7 @@ module.exports = createCoreController(
         return subset;
       };
 
-      // 5️⃣ Count each filter group options
+      // Count each filter group options
       computeVisibleCount("Price").forEach((prod) => {
         prod.variation.forEach((v) => {
           if (v.Price != null) {
@@ -292,12 +297,12 @@ module.exports = createCoreController(
         });
       });
 
-      // 6️⃣ Pagination
+      // Pagination
       const start = parseInt(ctx.query.offset || 0);
       const limit = parseInt(ctx.query.limit || 12);
       const paginatedProducts = filteredProducts.slice(start, start + limit);
 
-      // 7️⃣ Prepare final products
+      // Prepare final products
       const productsResponse = paginatedProducts.map((prod) => {
         const variations = prod.variation || [];
         let chosenVariation = null;
@@ -383,8 +388,26 @@ module.exports = createCoreController(
           },
         };
       });
+      /* ================= SEO ================= */
+    const seo = category.seo
+      ? {
+          meta_title: category.seo.meta_title || "",
+          meta_description: category.seo.meta_description || "",
+          meta_keyword: category.seo.meta_keyword || "",
+          canonical_tag: category.seo.canonical_tag || "",
+          robots: category.seo.robots || "",
+          og_title: category.seo.og_title || "",
+          og_description: category.seo.og_description || "",
+          twitter_title: category.seo.twitter_title || "",
+          twitter_description: category.seo.twitter_description || "",
 
-      // 8️⃣ Return
+          og_image: category.seo.og_image ? category.seo.og_image.url : null,
+
+          twitter_image: category.seo.twitter_image
+            ? category.seo.twitter_image.url
+            : null,
+        }
+      : null;
       return {
         id: category.id,
         name: category.name,
@@ -400,8 +423,8 @@ module.exports = createCoreController(
         })),
         totalProducts: filteredProducts.length,
         products: productsResponse,
-        seo: category.seo,
         filterCounts,
+        seo,
       };
     },
   })
