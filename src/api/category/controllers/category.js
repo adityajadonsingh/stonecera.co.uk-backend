@@ -313,19 +313,19 @@ module.exports = createCoreController(
             (v) =>
               typeof v.Per_m2 === "number" &&
               typeof v.Stock === "number" &&
-              v.Stock > 0
+              v.Stock > 0,
           );
           const outOfStock = variations.filter(
-            (v) => typeof v.Per_m2 === "number" && v.Stock <= 0
+            (v) => typeof v.Per_m2 === "number" && v.Stock <= 0,
           );
 
           if (inStock.length)
             chosenVariation = inStock.reduce((min, v) =>
-              v.Per_m2 < (min.Per_m2 ?? Infinity) ? v : min
+              v.Per_m2 < (min.Per_m2 ?? Infinity) ? v : min,
             );
           else if (outOfStock.length)
             chosenVariation = outOfStock.reduce((min, v) =>
-              v.Per_m2 < (min.Per_m2 ?? Infinity) ? v : min
+              v.Per_m2 < (min.Per_m2 ?? Infinity) ? v : min,
             );
           else chosenVariation = variations[0];
         }
@@ -389,25 +389,25 @@ module.exports = createCoreController(
         };
       });
       /* ================= SEO ================= */
-    const seo = category.seo
-      ? {
-          meta_title: category.seo.meta_title || "",
-          meta_description: category.seo.meta_description || "",
-          meta_keyword: category.seo.meta_keyword || "",
-          canonical_tag: category.seo.canonical_tag || "",
-          robots: category.seo.robots || "",
-          og_title: category.seo.og_title || "",
-          og_description: category.seo.og_description || "",
-          twitter_title: category.seo.twitter_title || "",
-          twitter_description: category.seo.twitter_description || "",
+      const seo = category.seo
+        ? {
+            meta_title: category.seo.meta_title || "",
+            meta_description: category.seo.meta_description || "",
+            meta_keyword: category.seo.meta_keyword || "",
+            canonical_tag: category.seo.canonical_tag || "",
+            robots: category.seo.robots || "",
+            og_title: category.seo.og_title || "",
+            og_description: category.seo.og_description || "",
+            twitter_title: category.seo.twitter_title || "",
+            twitter_description: category.seo.twitter_description || "",
 
-          og_image: category.seo.og_image ? category.seo.og_image.url : null,
+            og_image: category.seo.og_image ? category.seo.og_image.url : null,
 
-          twitter_image: category.seo.twitter_image
-            ? category.seo.twitter_image.url
-            : null,
-        }
-      : null;
+            twitter_image: category.seo.twitter_image
+              ? category.seo.twitter_image.url
+              : null,
+          }
+        : null;
       return {
         id: category.id,
         name: category.name,
@@ -427,5 +427,5 @@ module.exports = createCoreController(
         seo,
       };
     },
-  })
+  }),
 );

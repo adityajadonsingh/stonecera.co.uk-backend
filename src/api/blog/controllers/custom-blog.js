@@ -54,9 +54,9 @@ module.exports = {
           shortDescription: blog.short_description || "",
           content: blog.content || "",
           author: blog.author_name || "",
-          createdOn: blog.createdAt
-            ? new Date(blog.createdAt).toISOString().split("T")[0]
-            : null,
+          createdOn: blog.uploaded_date
+            ? new Date(blog.uploaded_date).toISOString().split("T")[0]
+            : new Date(blog.createdAt).toISOString().split("T")[0],
           image: blog.cover_image
             ? {
                 url: blog.cover_image.url,

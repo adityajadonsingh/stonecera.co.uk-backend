@@ -45,6 +45,9 @@
       "type": "component",
       "component": "seo.meta",
       "repeatable": false
+    },
+    "uploaded_date": {
+      "type": "date"
     }
   }
 }
