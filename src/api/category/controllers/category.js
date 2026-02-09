@@ -53,7 +53,7 @@ module.exports = createCoreController(
       const categoriesRaw = await strapi.db
         .query("api::category.category")
         .findMany({
-          select: ["name", "slug", "categoryDiscount"],
+          select: ["name", "slug", "categoryDiscount", "updatedAt", "createdAt"],
           populate: {
             images: { select: ["id", "url", "alternativeText"] },
           },
@@ -78,6 +78,7 @@ module.exports = createCoreController(
                   alt: img.alternativeText,
                 }))
               : [],
+            updatedAt: cat.updatedAt,  
           });
         }
       }

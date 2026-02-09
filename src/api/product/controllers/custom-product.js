@@ -119,6 +119,7 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
                 url: img.url,
                 alt: img.alternativeText || "",
               })) ?? [],
+            updatedAt: prod.updatedAt ?? prod.createdAt,  
           },
         };
       })
