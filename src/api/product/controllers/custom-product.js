@@ -119,7 +119,7 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
                 url: img.url,
                 alt: img.alternativeText || "",
               })) ?? [],
-            updatedAt: prod.updatedAt ?? prod.createdAt,  
+            updatedAt: prod.updatedAt ?? prod.createdAt,
           },
         };
       })
@@ -254,5 +254,45 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       })),
       seo,
     };
+  },
+
+  async updateVariation(ctx) {
+    const { productId } = ctx.params;
+    const updates = ctx.request.body;
+
+    const product = await strapi.entityService.findOne(
+      "api::product.product",
+      productId,
+      {
+        populate: { variation: true },
+      },
+    );
+
+    if (!product) {
+      return ctx.notFound("Product not found");
+    }
+
+    const variations = product.variation || [];
+
+    const updatedVariations = variations.map((v) => {
+      const match = updates.find((u) => u.uuid == v.uuid);
+      if (match) {
+        return {
+          ...v,
+          SKU: match.SKU,
+          Stock: Number(match.Stock),
+          Price: Number(match.Price),
+        };
+      }
+      return v;
+    });
+
+    await strapi.entityService.update("api::product.product", productId, {
+      data: {
+        variation: updatedVariations,
+      },
+    });
+
+    return { success: true };
   },
 }));

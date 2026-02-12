@@ -19,5 +19,10 @@ export default {
         auth: false,
       },
     },
+    {
+      method: "PUT",
+      path: "/products/:productId/update-variation",
+      handler: "custom-product.updateVariation",
+    },
   ],
 };
