@@ -1,7 +1,7 @@
-// src/api/product/routes/custom-product.js
-export default {
+"use strict";
+
+module.exports = {
   routes: [
-    // GET /api/products?limit=12&page=1
     {
       method: "GET",
       path: "/products",
@@ -10,7 +10,6 @@ export default {
         auth: false,
       },
     },
-    // GET /api/product/:slug
     {
       method: "GET",
       path: "/product/:slug",
@@ -23,6 +22,9 @@ export default {
       method: "PUT",
       path: "/products/:productId/update-variation",
       handler: "custom-product.updateVariation",
+      config: {
+        auth: false,
+      },
     },
   ],
 };
