@@ -126,8 +126,11 @@ module.exports = {
       const user = ctx.state.user;
       if (!user) return ctx.unauthorized("You must be logged in");
 
-      const { product: productId, variation_id, quantity = 1 } =
-        ctx.request.body ?? {};
+      const {
+        product: productId,
+        variation_id,
+        quantity = 1,
+      } = ctx.request.body ?? {};
 
       if (!productId || variation_id === undefined || variation_id === null) {
         return ctx.badRequest("product and variation_id are required");
@@ -136,7 +139,7 @@ module.exports = {
       const product = await strapi.entityService.findOne(
         "api::product.product",
         productId,
-        { populate: ["images", "variation"] }
+        { populate: ["images", "variation"] },
       );
       if (!product) return ctx.badRequest("Product not found");
 
@@ -144,8 +147,7 @@ module.exports = {
       if (!variation)
         return ctx.badRequest("Variation not found for this product");
 
-      const unitPrice =
-        Number(variation.Price ?? variation.price ?? 0) || 0;
+      const unitPrice = Number(variation.Price ?? variation.price ?? 0) || 0;
 
       const existingItems = await strapi.entityService.findMany(
         "api::cart.cart",
@@ -156,7 +158,7 @@ module.exports = {
             uuid: Number(variation_id),
           },
           limit: 1,
-        }
+        },
       );
 
       let cartItem;
@@ -184,7 +186,7 @@ module.exports = {
         cartItem = await strapi.entityService.update(
           "api::cart.cart",
           existing.id,
-          { data: { quantity: newQuantity, metadata } }
+          { data: { quantity: newQuantity, metadata } },
         );
       } else {
         cartItem = await strapi.entityService.create("api::cart.cart", {
@@ -235,7 +237,7 @@ module.exports = {
           entityToPlain(productEntity) ?? productEntity ?? null;
 
         const variationUuid = String(
-          e.uuid ?? e.variation_id ?? e.variationId ?? ""
+          e.uuid ?? e.variation_id ?? e.variationId ?? "",
         );
         const variation = findVariationFromProduct(productPlain, variationUuid);
 
@@ -324,6 +326,78 @@ module.exports = {
       return ctx.send({ ok: true });
     } catch (err) {
       strapi.log.error("cart.remove error", err);
+      return ctx.internalServerError("Server error");
+    }
+  },
+
+  async guestCart(ctx) {
+    try {
+      const items = ctx.request.body?.items || [];
+
+      if (!Array.isArray(items)) {
+        return ctx.badRequest("items must be an array");
+      }
+
+      const response = [];
+
+      for (const item of items) {
+        const { product: productId, variation_id, quantity } = item;
+
+        const product = await strapi.entityService.findOne(
+          "api::product.product",
+          productId,
+          { populate: ["images", "variation"] },
+        );
+
+        if (!product) continue;
+
+        const variation = findVariationFromProduct(product, variation_id);
+
+        if (!variation) continue;
+
+        const productPlain = entityToPlain(product);
+
+        response.push({
+          id: `${productId}-${variation_id}`,
+          quantity: Number(quantity ?? 1),
+          unit_price: Number(variation.Price ?? 0),
+
+          product: {
+            id: productPlain?.id ?? null,
+            name: productPlain?.name ?? null,
+            slug: productPlain?.slug ?? null,
+            image: getFirstImageFromProduct(productPlain, null),
+          },
+
+          variation: {
+            id: variation?.uuid ?? variation?.id ?? null,
+            stock: variation?.Stock ?? 0,
+          },
+
+          metadata: {
+            productName: productPlain?.name ?? null,
+            productImage: getFirstImageFromProduct(productPlain, null),
+
+            variation: {
+              uuid: variation?.uuid ?? null,
+              SKU: variation?.SKU ?? null,
+              Stock: variation?.Stock ?? 0,
+              Thickness: variation?.Thickness ?? null,
+              Size: variation?.Size ?? null,
+              Finish: variation?.Finish ?? null,
+              PackSize: variation?.PackSize ?? null,
+              Pcs: variation?.Pcs ?? null,
+              ColorTone: variation?.ColorTone ?? null,
+              Price: variation?.Price ?? null,
+              Per_m2: variation?.Per_m2 ?? null,
+            },
+          },
+        });
+      }
+
+      return ctx.send(response);
+    } catch (err) {
+      strapi.log.error("cart.guestCart error", err);
       return ctx.internalServerError("Server error");
     }
   },

@@ -25,5 +25,13 @@ module.exports = {
       handler: "api::cart.cart.remove",
       config: {},
     },
+    {
+      method: "POST",
+      path: "/cart/guest",
+      handler: "api::cart.cart.guestCart",
+      config: {
+        auth: false,
+      },
+    },
   ],
 };
