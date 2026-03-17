@@ -282,6 +282,8 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
           SKU: match.SKU,
           Stock: Number(match.Stock),
           Price: Number(match.Price),
+          Per_m2: Number(match.Per_m2),
+          PackSize: Number(match.PackSize),
         };
       }
       return v;
