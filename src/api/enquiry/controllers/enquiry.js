@@ -17,8 +17,11 @@ module.exports = {
         return ctx.badRequest("Missing required fields");
       }
 
-      const ip =
-        ctx.request.ip || ctx.request.header["x-forwarded-for"] || "unknown";
+      const forwarded = ctx.request.header["x-forwarded-for"];
+
+      const ip = forwarded
+        ? forwarded.split(",")[0].trim()
+        : ctx.request.ip || "unknown";
 
       /* ---------- HONEYPOT ---------- */
       if (website) {
