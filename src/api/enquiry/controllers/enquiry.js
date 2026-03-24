@@ -57,7 +57,9 @@ module.exports = {
       if (recent.length > 0) {
         return ctx.badRequest("Please wait before submitting another enquiry");
       }
-
+      console.log("IP:", ctx.request.ip);
+      console.log("X-Forwarded-For:", ctx.request.header["x-forwarded-for"]);
+      console.log("X-Real-IP:", ctx.request.header["x-real-ip"]);
       /* ---------- CREATE ENQUIRY ---------- */
       const enquiry = await strapi.entityService.create(
         "api::enquiry.enquiry",
