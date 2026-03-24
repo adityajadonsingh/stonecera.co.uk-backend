@@ -1,5 +1,20 @@
 "use strict";
 
+const getIP = (ctx) => {
+  const headers = ctx.request.header;
+
+  const cfIP = headers["cf-connecting-ip"];
+  if (cfIP) return cfIP;
+
+  const forwarded = headers["x-forwarded-for"];
+  if (forwarded) return forwarded.split(",")[0].trim();
+
+  const realIP = headers["x-real-ip"];
+  if (realIP) return realIP;
+
+  return ctx.request.ip || "unknown";
+};
+
 module.exports = {
   async create(ctx) {
     try {
@@ -17,11 +32,7 @@ module.exports = {
         return ctx.badRequest("Missing required fields");
       }
 
-      const forwarded = ctx.request.header["x-forwarded-for"];
-
-      const ip = forwarded
-        ? forwarded.split(",")[0].trim()
-        : ctx.request.ip || "unknown";
+      const ip = getIP(ctx);
 
       /* ---------- HONEYPOT ---------- */
       if (website) {
@@ -60,6 +71,8 @@ module.exports = {
       console.log("IP:", ctx.request.ip);
       console.log("X-Forwarded-For:", ctx.request.header["x-forwarded-for"]);
       console.log("X-Real-IP:", ctx.request.header["x-real-ip"]);
+      console.log("CF-IP:", ctx.request.header["cf-connecting-ip"]);
+      console.log("FINAL IP:", ip);
       /* ---------- CREATE ENQUIRY ---------- */
       const enquiry = await strapi.entityService.create(
         "api::enquiry.enquiry",
