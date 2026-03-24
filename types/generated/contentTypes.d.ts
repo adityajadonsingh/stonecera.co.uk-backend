@@ -559,6 +559,7 @@ export interface ApiEnquiryEnquiry extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    country_code: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;

@@ -24,7 +24,9 @@ module.exports = {
         phone,
         message,
         page,
-        website, // honeypot
+        website,
+        client_ip,
+        country_code,
       } = ctx.request.body || {};
 
       /* ---------- BASIC VALIDATION ---------- */
@@ -32,7 +34,7 @@ module.exports = {
         return ctx.badRequest("Missing required fields");
       }
 
-      const ip = getIP(ctx);
+      const ip = client_ip || getIP(ctx);
 
       /* ---------- HONEYPOT ---------- */
       if (website) {
@@ -85,6 +87,7 @@ module.exports = {
             message,
             page,
             ip_address: ip,
+            country_code: country_code || null,
             user_agent: ctx.request.header["user-agent"] || "",
             isSpam: false,
             isRead: false,

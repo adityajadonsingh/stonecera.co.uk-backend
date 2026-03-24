@@ -29,6 +29,9 @@
     "ip_address": {
       "type": "string"
     },
+    "country_code": {
+      "type": "string"
+    },
     "user_agent": {
       "type": "string"
     },
