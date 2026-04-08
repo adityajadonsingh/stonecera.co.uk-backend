@@ -142,7 +142,7 @@ module.exports = {
             `${process.env.STRAPI_API_URL}api/upload`,
           );
           const uploadRes = await fetch(
-            `${process.env.STRAPI_API_URL}/api/upload`,
+            `${process.env.STRAPI_API_URL}api/upload`,
             {
               method: "POST",
               body: formData,
