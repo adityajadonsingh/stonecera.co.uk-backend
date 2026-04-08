@@ -1,4 +1,3 @@
-// backend/config/plugins.ts
 export default ({ env }) => ({
   email: {
     config: {
@@ -18,6 +17,20 @@ export default ({ env }) => ({
       settings: {
         defaultFrom: env("EMAIL_FROM"),
         defaultReplyTo: env("EMAIL_REPLY_TO"),
+      },
+    },
+  },
+
+  "users-permissions": {
+    config: {
+      providers: {
+        google: {
+          enabled: true,
+          icon: "google",
+          key: env("GOOGLE_CLIENT_ID"),
+          secret: env("GOOGLE_CLIENT_SECRET"),
+          callback: "/auth/google/callback",
+        },
       },
     },
   },

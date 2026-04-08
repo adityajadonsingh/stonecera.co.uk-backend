@@ -14,8 +14,7 @@
     "user": {
       "type": "relation",
       "relation": "oneToOne",
-      "target": "plugin::users-permissions.user",
-      "inversedBy": "user_detail"
+      "target": "plugin::users-permissions.user"
     },
     "firstName": {
       "type": "string"
@@ -26,12 +25,7 @@
     "profileImage": {
       "type": "media",
       "multiple": false,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
+      "allowedTypes": ["images", "files", "videos", "audios"]
     },
     "phoneNumbers": {
       "type": "component",

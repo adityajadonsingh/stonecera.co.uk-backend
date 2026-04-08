@@ -2,49 +2,68 @@
 
 const redisService = require("../../../utils/redis");
 
-/* Helpers ------------------------------------------------------------------ */
-function buildAbsoluteUrl(path) {
-  if (!path) return null;
-  if (path.startsWith("http")) return path;
+function buildAbsoluteUrl(url) {
+  if (!url) return null;
+
   const base =
     (strapi?.config?.get && strapi.config.get("server.url")) ||
     process.env.STRAPI_API_URL ||
     `http://localhost:${process.env.PORT || 1337}`;
-  return `${String(base).replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+
+  return url.startsWith("http") ? url : `${base.replace(/\/$/, "")}${url}`;
 }
 
-function normalizeMedia(media) {
-  if (!media) return null;
-  const m = media.data ?? media;
-  const attrs = m.attributes ?? m;
-  const url = attrs.url ?? null;
-  return {
-    id: m.id ?? attrs.id ?? null,
-    url: url ? buildAbsoluteUrl(url) : null,
-    name: attrs.name ?? null,
-    alternativeText: attrs.alternativeText ?? attrs.alternative_text ?? null,
-  };
-}
-
-/* Controller --------------------------------------------------------------- */
 module.exports = {
-  // GET /api/user-details/redis
   async get(ctx) {
     try {
-      const user = ctx.state.user;
-      if (!user) return ctx.unauthorized("You must be logged in");
+      // 🔥 GET TOKEN
+      const authHeader = ctx.request.header.authorization;
+
+      if (!authHeader) {
+        return ctx.unauthorized("No token");
+      }
+
+      const token = authHeader.replace("Bearer ", "");
+
+      // 🔥 VERIFY TOKEN MANUALLY
+      let decoded;
+      try {
+        decoded = await strapi
+          .plugin("users-permissions")
+          .service("jwt")
+          .verify(token);
+      } catch (err) {
+        return ctx.unauthorized("Invalid token");
+      }
+      console.log("🔥 TOKEN:", token);
+      console.log("🔥 DECODED:", decoded);
+      const userId = decoded?.id || decoded?.sub;
+
+      if (!userId) {
+        return ctx.unauthorized("Invalid token payload");
+      }
+
+      // 🔥 FETCH USER
+      const user = await strapi.entityService.findOne(
+        "plugin::users-permissions.user",
+        userId,
+      );
+
+      if (!user) {
+        return ctx.unauthorized("User not found");
+      }
 
       const client = await redisService.connect();
       const key = `user:details:${user.id}`;
 
-      // 1️⃣ check cache
+      // 1️⃣ CACHE CHECK
       const cached = await client.get(key);
       if (cached) {
         const data = JSON.parse(cached);
         return ctx.send({ source: "redis", ...data });
       }
 
-      // 2️⃣ fallback query
+      // 2️⃣ DB FETCH
       const record = await strapi.db
         .query("api::user-detail.user-detail")
         .findOne({
@@ -61,12 +80,17 @@ module.exports = {
             id: record.id,
             firstName: record.firstName ?? null,
             lastName: record.lastName ?? null,
-            profileImage: normalizeMedia(record.profileImage),
+            profileImage: record.profileImage
+              ? {
+                  ...record.profileImage,
+                  url: buildAbsoluteUrl(record.profileImage.url),
+                }
+              : null,
             phoneNumbers: record.phoneNumbers ?? [],
             savedAddresses: record.savedAddresses ?? [],
           }
         : null;
-
+          console.log(userDetails);
       const payload = {
         id: user.id,
         username: user.username ?? null,
@@ -74,29 +98,40 @@ module.exports = {
         userDetails,
       };
 
-      // 3️⃣ save to cache (5 min TTL)
+      // 3️⃣ SAVE CACHE
       await client.set(key, JSON.stringify(payload), { EX: 300 });
 
-      ctx.send({ source: "db", ...payload });
+      return ctx.send({ source: "db", ...payload });
     } catch (err) {
       strapi.log.error("user-detail-redis.get error", err);
-      ctx.internalServerError("Server error");
+      return ctx.internalServerError("Server error");
     }
   },
 
-  // DELETE /api/user-details/redis/clear
   async clear(ctx) {
     try {
-      const user = ctx.state.user;
-      if (!user) return ctx.unauthorized();
+      const authHeader = ctx.request.header.authorization;
+
+      if (!authHeader) {
+        return ctx.unauthorized();
+      }
+
+      const token = authHeader.replace("Bearer ", "");
+
+      const decoded = strapi
+        .plugin("users-permissions")
+        .service("jwt")
+        .verify(token);
 
       const client = await redisService.connect();
-      const key = `user:details:${user.id}`;
+      const key = `user:details:${decoded.id}`;
+
       await client.del(key);
-      ctx.send({ ok: true, cleared: key });
+
+      return ctx.send({ ok: true });
     } catch (err) {
       strapi.log.error("user-detail-redis.clear error", err);
-      ctx.internalServerError("Server error");
+      return ctx.internalServerError("Server error");
     }
   },
 };
