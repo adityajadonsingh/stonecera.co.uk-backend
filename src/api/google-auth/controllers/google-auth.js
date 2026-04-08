@@ -21,7 +21,7 @@ module.exports = {
           headers: {
             Authorization: `Bearer ${access_token}`,
           },
-        }
+        },
       );
 
       const googleUser = await googleRes.json();
@@ -102,7 +102,6 @@ module.exports = {
       // =====================================================
       // 🆕 CREATE NEW USER
       // =====================================================
-
       else {
         user = await userQuery.create({
           data: {
@@ -138,13 +137,16 @@ module.exports = {
           const formData = new FormData();
 
           formData.append("files", blob, "google-profile.jpg");
-
+          console.log(
+            "UPLOAD URL:",
+            `${process.env.STRAPI_API_URL}/api/upload`,
+          );
           const uploadRes = await fetch(
             `${process.env.STRAPI_API_URL}/api/upload`,
             {
               method: "POST",
               body: formData,
-            }
+            },
           );
 
           const uploaded = await uploadRes.json();
@@ -181,36 +183,30 @@ module.exports = {
                 profileImage: uploadedImageId,
               }),
             },
-          }
+          },
         );
       } else {
         console.log("🟢 CREATING USER DETAIL");
 
-        await strapi.entityService.create(
-          "api::user-detail.user-detail",
-          {
-            data: {
-              user: user.id,
-              firstName,
-              lastName,
-              ...(uploadedImageId && {
-                profileImage: uploadedImageId,
-              }),
-            },
-          }
-        );
+        await strapi.entityService.create("api::user-detail.user-detail", {
+          data: {
+            user: user.id,
+            firstName,
+            lastName,
+            ...(uploadedImageId && {
+              profileImage: uploadedImageId,
+            }),
+          },
+        });
       }
 
       // =====================================================
       // 🔐 ISSUE JWT
       // =====================================================
 
-      const jwt = strapi
-        .plugin("users-permissions")
-        .service("jwt")
-        .issue({
-          id: user.id,
-        });
+      const jwt = strapi.plugin("users-permissions").service("jwt").issue({
+        id: user.id,
+      });
 
       console.log("GENERATED JWT:", jwt);
 
@@ -221,9 +217,7 @@ module.exports = {
     } catch (err) {
       console.error("🔥 Google auth error:", err);
 
-      return ctx.internalServerError(
-        "Something went wrong"
-      );
+      return ctx.internalServerError("Something went wrong");
     }
   },
 };
