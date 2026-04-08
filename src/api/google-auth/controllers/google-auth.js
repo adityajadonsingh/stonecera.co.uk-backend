@@ -139,7 +139,7 @@ module.exports = {
           formData.append("files", blob, "google-profile.jpg");
           console.log(
             "UPLOAD URL:",
-            `${process.env.STRAPI_API_URL}/api/upload`,
+            `${process.env.STRAPI_API_URL}api/upload`,
           );
           const uploadRes = await fetch(
             `${process.env.STRAPI_API_URL}/api/upload`,
