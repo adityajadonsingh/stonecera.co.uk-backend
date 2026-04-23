@@ -34,6 +34,18 @@ async function getHomepageReviews(strapi) {
 }
 
 module.exports = createCoreController("api::product.product", ({ strapi }) => ({
+  async allProducts(ctx) {
+    const products = await strapi.entityService.findMany(
+      "api::product.product",
+      {
+        populate: { variation: true },
+        limit: -1, 
+      },
+    );
+
+    return { products };
+  },
+
   // GET /api/products?limit=&page=
   async list(ctx) {
     const limit = parseInt(ctx.query.limit || "12", 10);

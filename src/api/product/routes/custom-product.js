@@ -17,6 +17,12 @@ module.exports = {
       config: {
         auth: false,
       },
-    }
+    },
+    {
+      method: "GET",
+      path: "/products/all",
+      handler: "custom-product.allProducts",
+      config: { auth: false },
+    },
   ],
 };
