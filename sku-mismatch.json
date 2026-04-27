@@ -1,0 +1,597 @@
+[
+  {
+    "product": "Cloud Grey Wall Cladding Corner",
+    "dbSKU": "CGC-600200-CGR / 43050NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Dark Grey Wall Cladding Corner",
+    "dbSKU": "DGC-600150-CGR / 2545NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Golden Wall Cladding Corner",
+    "dbSKU": "CCG-600150-CGR / 2545NBC",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Shimla White Wall Cladding",
+    "dbSKU": "SWS-600150-ISL / 2161525NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Grey Limestone Natural Paving",
+    "dbSKU": "GL-MIXPACK-ILS / 22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Grey Limestone Natural Paving",
+    "dbSKU": "GL-600900-ILS / 22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kota Blue Natural Limestone Paving",
+    "dbSKU": "KB-MIXPACK-ILS / A22NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kota Blue Natural Limestone Paving",
+    "dbSKU": "KB-600900-ILS / A22NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Antique Grey Limestone Paving",
+    "dbSKU": "GL-MIXPACK-ILS / 22TBH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Antique Grey Limestone Paving",
+    "dbSKU": "GL-600900-ILS / A22TBH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Tumbled Grey Limestone Paving",
+    "dbSKU": "GL-MIXPACK-ILS / A22NTH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Tumbled Grey Limestone Paving",
+    "dbSKU": "GL-600900-ILS / 22NTH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Dark Grey Limestone Paving",
+    "dbSKU": "KGN-MIXPACK-ILS / A4822HHTBM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Antique Yellow Limestone Paving",
+    "dbSKU": "YL-MIXPACK-ILS / 22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Antique Yellow Limestone Paving",
+    "dbSKU": "YL-600900-ILS / 22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Tumbled Yellow Limestone Paving",
+    "dbSKU": "YL-MIXPACK-ILS / A22CTH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Tumbled Yellow Limestone Paving",
+    "dbSKU": "YL-600900-ILS / 22CTH30",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Yellow Limestone Natural Paving",
+    "dbSKU": "YL-MIXPACK-ILS / A22TBH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Yellow Limestone Natural Paving",
+    "dbSKU": "YL-600900-ILS / 22TBH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Black Limestone Natural Paving",
+    "dbSKU": "BL-MIXPACK-ILS / A22NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Black Limestone Natural Paving",
+    "dbSKU": "BL-600900-ILS / 22NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Egyptian Acid Washed Limestone Paving",
+    "dbSKU": "ELP-MIXPACK-ELS / 20ADM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Egyptian Acid Washed Limestone Paving",
+    "dbSKU": "ELP-600900-ELS / 3020ADM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Egyptian Limestone Paving",
+    "dbSKU": "ELP-600900-ELS / 3020HTM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Egyptian Limestone Paving",
+    "dbSKU": "ELP-MIXPACK-ELS / 20HTM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Green Honed Sandstone Paving",
+    "dbSKU": "RG-600900-ISS / 20HCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Green Natural Sandstone Paving",
+    "dbSKU": "RG-600900-ISS / 22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Green Natural Sandstone Paving",
+    "dbSKU": "RG-MIXPACK-ISS / B22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Blend Natural Sandstone Paving",
+    "dbSKU": "RB-600900-ISS / 18NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Blend Natural Sandstone Paving",
+    "dbSKU": "RB-MIXPACK-ISS / B18NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Blend Natural Sandstone Paving",
+    "dbSKU": "RB-MIXPACK-ISS / B22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Blend Natural Sandstone Paving",
+    "dbSKU": "RB-600900-ISS / 22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Sagar Black Natural Sandstone Paving",
+    "dbSKU": "SB-MIXPACK-ISS / B22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Sagar Black Tumbled Sandstone Paving",
+    "dbSKU": "SB-MIXPACK-ISS / 22CTH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Mint Multi Honed Sandstone Natural Paving",
+    "dbSKU": "MMH-600900-ISS / 20HCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Mint Fossil Sandstone Natural Paving",
+    "dbSKU": "MF-MIXPACK-ISS / B22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Mint Fossil Sandstone Natural Paving",
+    "dbSKU": "MWH-600900-ISS / 20HCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Honed Sandstone Paving",
+    "dbSKU": "KG-MIXPACK-ISS / B20HCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Honed Sandstone Paving",
+    "dbSKU": "KG-600900-ISS / 20HCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Natural Sandstone Paving",
+    "dbSKU": "KG-MIXPACK-ISS / B22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Natural Sandstone Paving",
+    "dbSKU": "KG-600900-ISS / 22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Natural Sandstone Paving",
+    "dbSKU": "KG-MIXPACK-ISS / B18NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Natural Sandstone Paving",
+    "dbSKU": "KG-600900-ISS / 18NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Buff Natural Sandstone Paving",
+    "dbSKU": "BF-MIXPACK-ISS / 18NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Buff Natural Sandstone Paving",
+    "dbSKU": "BF-600900-ISS / 22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Buff Natural Sandstone Paving",
+    "dbSKU": "BF-MIXPACK-ISS / B22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Buff Honed Sandstone Paving",
+    "dbSKU": "BF-MIXPACK-ISS / B20HCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Buff Honed Sandstone Paving",
+    "dbSKU": "BF-600900-ISS / 20HCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Autumn Brown Natural Sandstone Paving",
+    "dbSKU": "AB-MIXPACK-ISS / B22NCH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Himachal White Wall Cladding",
+    "dbSKU": "HWS-600150-ISL / 2161525NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Cloud Grey Wall Cladding Panel",
+    "dbSKU": "CGC-600200-CGR / 43050NCC",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Dark Grey Wall Cladding Panel",
+    "dbSKU": "DGC-600150-CGR / 2545NCC",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Golden Wall Cladding Panel",
+    "dbSKU": "CCG-600150-CGR / 2545NBC",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Zeera Green Wall Cladding",
+    "dbSKU": "ZGS-600150-ISL / 20CLM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Black Slate Wall Cladding",
+    "dbSKU": "BS-600150-ISL / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Autumn Brown Wall Cladding",
+    "dbSKU": "AB-600150-ISS / 20CLM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Jack Multi Wall Cladding",
+    "dbSKU": "JM-600150-ISL / 20CLM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Wall Cladding",
+    "dbSKU": "KG-600150-ISS / 20CLM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Mint Fossil Wall Cladding",
+    "dbSKU": "MF-600150-ISS / 20CLM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Silver Grey Wall Cladding",
+    "dbSKU": "SGS-600150-ISL / 20CLM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Rustic Slate Stone",
+    "dbSKU": "CG-MIXPACK-ISL / A20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Rustic Slate Stone",
+    "dbSKU": "CG-600900-ISL / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Brazilian Black Slate Stone",
+    "dbSKU": "RS-600900-BSL / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Yellow Limestone Cobblestone Paving",
+    "dbSKU": "YL-100100-ILS / 3040NTH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Yellow Limestone Cobblestone Paving",
+    "dbSKU": "YL-100200-ILS / 3040NTH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Black Limestone Cobblestone Paving",
+    "dbSKU": "BL-100100-ILS / 3545NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Black Limestone Cobblestone Paving",
+    "dbSKU": "BL-100200-ILS / 3545NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Green Cobblestone Paving",
+    "dbSKU": "RB-100100-ISS / 3555NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Green Cobblestone Paving",
+    "dbSKU": "RB-100200-ISS / 3555NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Cobblestone Paving",
+    "dbSKU": "KG-100100-ISS / 2535NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Cobblestone Paving",
+    "dbSKU": "KG-100200-ISS / 2535NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Cobblestone Paving",
+    "dbSKU": "KG-100100-ISS / 3555NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Cobblestone Paving",
+    "dbSKU": "KG-100200-ISS / 3555NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Red Bricks",
+    "dbSKU": "BR-228110-IBR",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Yellow Bricks",
+    "dbSKU": "BY-228110-PBR / 68NNH",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Dijon Limestone Beige Porcelain",
+    "dbSKU": "DLB-600900-IPO / 4020NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Dijon Limestone Grey Porcelain",
+    "dbSKU": "DLG-600900-IPO / 4020NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Statuario Porcelain",
+    "dbSKU": "SRP-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "County Anthracite Porcelain",
+    "dbSKU": "CA-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "County Anthracite Porcelain",
+    "dbSKU": "CAP-150900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Green Porcelain",
+    "dbSKU": "RGP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Raj Green Porcelain",
+    "dbSKU": "RG-MIXPACK-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Hammerstone Beige Porcelain",
+    "dbSKU": "HB-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Rough Bruno Porcelain",
+    "dbSKU": "RO-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "County Lgy Porcelain",
+    "dbSKU": "CLP-150900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "County Lgy Porcelain",
+    "dbSKU": "CLP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "County Crema Porcelain",
+    "dbSKU": "CCP-600600-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "County Crema Porcelain",
+    "dbSKU": "CCP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Brazilian Grey Porcelain",
+    "dbSKU": "BGPT-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Quartz White Porcelain",
+    "dbSKU": "QWP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Brazilian Black Porcelain",
+    "dbSKU": "BBP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Himalyan White Porcelain",
+    "dbSKU": "HWP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "County Gris Porcelain",
+    "dbSKU": "CGP-600600-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "County Gris Porcelain",
+    "dbSKU": "CGP-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Earthcore Grey Porcelain",
+    "dbSKU": "EG-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Abbey Porcelain",
+    "dbSKU": "ABP-600600-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Abbey Porcelain",
+    "dbSKU": "AB-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Porcelain",
+    "dbSKU": "KG-600600-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Porcelain",
+    "dbSKU": "KG-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Porcelain",
+    "dbSKU": "KGP-1200600-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Kandla Grey Porcelain",
+    "dbSKU": "KGP-MIXPACK-IPO / D20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Hammer Stone Grey Porcelain",
+    "dbSKU": "HG-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Quartz Grey Porcelain",
+    "dbSKU": "QGP-600600-IPO / 6420NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Quartz Grey Porcelain",
+    "dbSKU": "QGP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Anthracite Grey Porcelain",
+    "dbSKU": "AGP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Slate Imperio Porcelain",
+    "dbSKU": "SIP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Getafe Grey Porcelain",
+    "dbSKU": "GGP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Getafe Beige Porcelain",
+    "dbSKU": "GBP-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Getafe Nero Porcelain",
+    "dbSKU": "GNP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Cross Over Grey Porcelain",
+    "dbSKU": "CGY-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Cross Over White Porcelain",
+    "dbSKU": "CWP-600900-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Cotta Crema Porcelain",
+    "dbSKU": "CC-600600-IPO / 6420NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Copper Slate Porcelain",
+    "dbSKU": "CPP-600900-IPO / 4020NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Storm Bianco Porcelain",
+    "dbSKU": "SOP-600900-IPO / 4020NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Storm Beige Porcelain",
+    "dbSKU": "SEP-600900-IPO / 4020NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Storm Grey Porcelain",
+    "dbSKU": "SGP-600900-IPO / 4020NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Smoke Grey Porcelain",
+    "dbSKU": "MGP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Buff Porcelain",
+    "dbSKU": "BP-600900-IPO / 20NCM",
+    "issue": "❌ Not found in Excel"
+  },
+  {
+    "product": "Buff Porcelain",
+    "dbSKU": "BP-MIXPACK-IPO / 20NBCM",
+    "issue": "❌ Not found in Excel"
+  }
+]

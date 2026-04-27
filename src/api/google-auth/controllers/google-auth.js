@@ -1,3 +1,5 @@
+// File: backend/src/api/google-auth/controllers/google-auth.js
+
 "use strict";
 
 module.exports = {

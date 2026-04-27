@@ -4,189 +4,183 @@ require("dotenv").config();
 
 const axios = require("axios");
 const https = require("https");
+const fs = require("fs");
 
 async function run() {
   try {
-    console.log("🚀 Starting SKU audit...\n");
+    console.log("🚀 Starting API vs API SKU audit...\n");
 
     const agent = new https.Agent({
       rejectUnauthorized: false,
     });
 
-    const username = process.env.STOCK_API_USER;
-    const password = process.env.STOCK_API_PASS;
-
-    console.log("🔐 USER:", username);
-    console.log("🔐 PASS:", password ? "✔️ Loaded" : "❌ Missing");
-
-    const URL =
-      "https://allstones.mpgstones.co.uk:7048/BC160/ODataV4/Company('Stone%20Depo')/Inventoryapi";
-
-    console.log("\n🌐 Calling API...");
-    console.log("👉 URL:", URL);
-
     // =============================
-    // API CALL
+    // 🌐 FETCH INVENTORY API
     // =============================
-    const apiRes = await axios.get(URL, {
-      httpsAgent: agent,
-      auth: {
-        username,
-        password,
-      },
-      headers: {
-        Accept: "application/json",
-      },
-    });
+    console.log("📡 Fetching Inventory API...");
 
-    const apiData = apiRes.data.value || [];
-
-    console.log("\n✅ API SUCCESS");
-    console.log("📦 API records:", apiData.length);
-
-    // =============================
-    // BUILD API SKU SET
-    // =============================
-    const apiSKUSet = new Set();
-
-    apiData.forEach((item) => {
-      const sku = normalizeSKU(item.ItemNo + item.VariantCode);
-      apiSKUSet.add(sku);
-    });
-
-    console.log("📦 Unique API SKUs:", apiSKUSet.size);
-
-    // =============================
-    // FETCH STRAPI PRODUCTS
-    // =============================
-    console.log("\n📥 Fetching Strapi products...");
-
-    const products = await strapi.entityService.findMany(
-      "api::product.product",
+    const inventoryRes = await axios.get(
+      "https://allstones.mpgstones.co.uk:7048/BC160/ODataV4/Company('Stone%20Depo')/Inventoryapi",
       {
-        populate: { variation: true },
-        limit: -1,
+        httpsAgent: agent,
+        auth: {
+          username: process.env.STOCK_API_USER,
+          password: process.env.STOCK_API_PASS,
+        },
       }
     );
 
+    const inventory = inventoryRes.data.value || [];
+
+    console.log("📦 Inventory records:", inventory.length);
+
+    // 🔥 Build map: ItemNo → [VariantCodes]
+    const inventoryMap = {};
+
+    inventory.forEach((item) => {
+      const itemNo = item.ItemNo;
+      const variant = item.VariantCode;
+
+      if (!inventoryMap[itemNo]) {
+        inventoryMap[itemNo] = new Set();
+      }
+
+      inventoryMap[itemNo].add(variant);
+    });
+
+    // =============================
+    // 🌐 FETCH PRODUCTS API
+    // =============================
+    console.log("\n🌐 Fetching Products API...");
+
+    const res = await axios.get(
+      "https://admin.stonecera.co.uk/api/products/all"
+    );
+
+    const products = res.data.products || [];
+
     console.log("📦 Products fetched:", products.length);
 
-    let totalVariations = 0;
-    let matched = 0;
-    let unmatched = [];
+    // =============================
+    // 🔍 MATCHING
+    // =============================
+    let total = 0;
+    let mismatch = [];
 
-    // =============================
-    // MATCHING + SUGGESTIONS
-    // =============================
     products.forEach((product) => {
       (product.variation || []).forEach((v) => {
-        totalVariations++;
+        total++;
 
-        const dbSKU = normalizeSKU(v.SKU);
+        const originalSKU = v.SKU;
 
-        if (apiSKUSet.has(dbSKU)) {
-          matched++;
-        } else {
-          const suggestions = findClosestMatches(dbSKU, apiSKUSet);
+        const itemNo = extractItemNo(originalSKU);
+        const variant = extractVariant(originalSKU);
 
-          unmatched.push({
+        const validVariants = inventoryMap[itemNo];
+
+        if (!validVariants) {
+          mismatch.push({
             product: product.name,
-            original: v.SKU,
-            normalized: dbSKU,
-            suggestions,
+            sku: originalSKU,
+            issue: "ItemNo not found in Inventory API",
+          });
+          return;
+        }
+
+        if (!validVariants.has(variant)) {
+          // find closest variant
+          const suggestion = findClosestVariant(
+            variant,
+            Array.from(validVariants)
+          );
+
+          mismatch.push({
+            product: product.name,
+            sku: originalSKU,
+            correct: suggestion
+              ? `${itemNo} / ${suggestion}`
+              : null,
           });
         }
       });
     });
 
     // =============================
-    // RESULTS
+    // 📊 RESULT
     // =============================
     console.log("\n📊 RESULT:");
-    console.log("Total Variations:", totalVariations);
-    console.log("Matched:", matched);
-    console.log("Unmatched:", unmatched.length);
+    console.log("Total:", total);
+    console.log("Mismatched:", mismatch.length);
 
-    console.log("\n❌ Unmatched SKUs with Suggestions:\n");
+    console.log("\n❌ Sample mismatches:\n");
 
-    unmatched.slice(0, 30).forEach((u) => {
-      console.log(`🧱 Product: ${u.product}`);
-      console.log(`   Original: ${u.original}`);
-      console.log(`   Normalized: ${u.normalized}`);
+    mismatch.slice(0, 25).forEach((m) => {
+      console.log(`🧱 ${m.product}`);
+      console.log(`   ❌ Your SKU: ${m.sku}`);
 
-      if (u.suggestions.length > 0) {
-        console.log(`   🔍 Closest API Matches:`);
-        u.suggestions.forEach((s) => {
-          console.log(`      → ${s.apiSKU} (score: ${s.score})`);
-        });
+      if (m.correct) {
+        console.log(`   ✅ Correct SKU: ${m.correct}`);
       } else {
-        console.log(`   ⚠️ No close match found`);
+        console.log(`   ⚠️ ${m.issue}`);
       }
 
       console.log("");
     });
 
-    if (unmatched.length > 30) {
-      console.log(`...and ${unmatched.length - 30} more`);
-    }
+    fs.writeFileSync(
+      "api-mismatch.json",
+      JSON.stringify(mismatch, null, 2)
+    );
 
-    console.log("\n🎉 Audit completed\n");
+    console.log("📁 Saved: api-mismatch.json");
+    console.log("\n🎉 Done\n");
 
   } catch (err) {
-    console.error("\n❌ ERROR:");
-    console.error(err.response?.status);
-    console.error(err.response?.data);
-    console.error(err.message);
+    console.error("❌ Error:", err.message);
   }
 }
 
 // =============================
-// NORMALIZER (BASIC CLEAN ONLY)
+// HELPERS
 // =============================
-function normalizeSKU(sku) {
+
+function extractItemNo(sku) {
+  if (!sku) return "";
+  return sku.split("/")[0].trim();
+}
+
+function extractVariant(sku) {
   if (!sku) return "";
 
-  return sku
-    .toUpperCase()
-    .replace(/\s+/g, "")
-    .replace("/", "")
-    .trim();
+  const part = sku.split("/")[1] || "";
+  const clean = part.trim().toUpperCase();
+
+  // remove leading junk like 40, 64, A, B etc
+  const match = clean.match(/(\d{2,3}[A-Z]+)/);
+
+  return match ? match[1] : clean;
 }
 
-// =============================
-// FIND CLOSEST MATCHES
-// =============================
-function findClosestMatches(dbSKU, apiSKUs) {
-  const matches = [];
+function findClosestVariant(input, variants) {
+  let best = null;
+  let score = -1;
 
-  for (const apiSKU of apiSKUs) {
-    let score = 0;
+  variants.forEach((v) => {
+    let s = 0;
 
-    // strong match if substring
-    if (apiSKU.includes(dbSKU) || dbSKU.includes(apiSKU)) {
-      score += 50;
+    if (v === input) s += 100;
+
+    if (v.slice(-3) === input.slice(-3)) s += 40;
+
+    if (v.includes(input) || input.includes(v)) s += 30;
+
+    if (s > score) {
+      score = s;
+      best = v;
     }
+  });
 
-    // ending match (variant similarity)
-    const dbEnd = dbSKU.slice(-5);
-    const apiEnd = apiSKU.slice(-5);
-
-    if (dbEnd === apiEnd) score += 30;
-
-    // starting match (item code similarity)
-    const dbStart = dbSKU.slice(0, 6);
-    const apiStart = apiSKU.slice(0, 6);
-
-    if (dbStart === apiStart) score += 20;
-
-    if (score > 0) {
-      matches.push({ apiSKU, score });
-    }
-  }
-
-  return matches
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+  return best;
 }
 
 module.exports = { run };
