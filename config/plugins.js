@@ -3,15 +3,12 @@ export default ({ env }) => ({
     config: {
       provider: "@strapi/provider-email-nodemailer",
       providerOptions: {
-        host: "smtp.gmail.com",
+        host: "smtp.office365.com",
         port: 587,
         secure: false,
         auth: {
-          type: "OAuth2",
-          user: env("GMAIL_USER"),
-          clientId: env("GMAIL_CLIENT_ID"),
-          clientSecret: env("GMAIL_CLIENT_SECRET"),
-          refreshToken: env("GMAIL_REFRESH_TOKEN"),
+          user: env("SMTP_USER"),
+          pass: env("SMTP_PASS"),
         },
       },
       settings: {
