@@ -14,13 +14,13 @@ async function run() {
       rejectUnauthorized: false,
     });
 
-    // =============================
-    // 🌐 FETCH INVENTORY API
-    // =============================
+    // ==========================================
+    // FETCH INVENTORY API
+    // ==========================================
     console.log("📡 Fetching Inventory API...");
 
     const inventoryRes = await axios.get(
-      "https://allstones.mpgstones.co.uk:7048/BC160/ODataV4/Company('Stone%20Depo')/Inventoryapi",
+      "https://allstones.mpgstones.co.uk:7048/BC160/ODataV4/newsku?Company='P_SURFACES'",
       {
         httpsAgent: agent,
         auth: {
@@ -34,153 +34,193 @@ async function run() {
 
     console.log("📦 Inventory records:", inventory.length);
 
-    // 🔥 Build map: ItemNo → [VariantCodes]
-    const inventoryMap = {};
+    // ==========================================
+    // BUILD INVENTORY SKU MAP
+    // ==========================================
+    const inventorySkuMap = {};
 
     inventory.forEach((item) => {
-      const itemNo = item.ItemNo;
-      const variant = item.VariantCode;
+      const sku = (item.NewSKU || "")
+        .trim()
+        .toUpperCase();
 
-      if (!inventoryMap[itemNo]) {
-        inventoryMap[itemNo] = new Set();
+      if (sku) {
+        inventorySkuMap[sku] = item;
       }
-
-      inventoryMap[itemNo].add(variant);
     });
 
-    // =============================
-    // 🌐 FETCH PRODUCTS API
-    // =============================
+    console.log(
+      "🔍 Sample Inventory SKUs:",
+      Object.keys(inventorySkuMap).slice(0, 5)
+    );
+
+    // ==========================================
+    // FETCH STRAPI PRODUCTS
+    // ==========================================
     console.log("\n🌐 Fetching Products API...");
 
-    const res = await axios.get(
+    const productsRes = await axios.get(
       "https://admin.stonecera.co.uk/api/products/all"
     );
 
-    const products = res.data.products || [];
+    const products = productsRes.data.products || [];
 
     console.log("📦 Products fetched:", products.length);
 
-    // =============================
-    // 🔍 MATCHING
-    // =============================
-    let total = 0;
-    let mismatch = [];
+    // ==========================================
+    // WEBSITE → API CHECK
+    // ==========================================
+    let totalVariations = 0;
+
+    const websiteMissingInApi = [];
+
+    const websiteSkuSet = new Set();
 
     products.forEach((product) => {
-      (product.variation || []).forEach((v) => {
-        total++;
+      (product.variation || []).forEach((variation) => {
+        totalVariations++;
 
-        const originalSKU = v.SKU;
+        const websiteSKU = (variation.SKU || "")
+          .trim()
+          .toUpperCase();
 
-        const itemNo = extractItemNo(originalSKU);
-        const variant = extractVariant(originalSKU);
-
-        const validVariants = inventoryMap[itemNo];
-
-        if (!validVariants) {
-          mismatch.push({
+        if (!websiteSKU) {
+          websiteMissingInApi.push({
             product: product.name,
-            sku: originalSKU,
-            issue: "ItemNo not found in Inventory API",
+            sku: "",
+            issue: "Empty SKU in Strapi",
           });
           return;
         }
 
-        if (!validVariants.has(variant)) {
-          // find closest variant
-          const suggestion = findClosestVariant(
-            variant,
-            Array.from(validVariants)
-          );
+        websiteSkuSet.add(websiteSKU);
 
-          mismatch.push({
+        if (!inventorySkuMap[websiteSKU]) {
+          websiteMissingInApi.push({
             product: product.name,
-            sku: originalSKU,
-            correct: suggestion
-              ? `${itemNo} / ${suggestion}`
-              : null,
+            sku: websiteSKU,
+            stock: variation.Stock,
+            issue: "SKU not found in Inventory API",
           });
         }
       });
     });
 
-    // =============================
-    // 📊 RESULT
-    // =============================
-    console.log("\n📊 RESULT:");
-    console.log("Total:", total);
-    console.log("Mismatched:", mismatch.length);
+    // ==========================================
+    // API → WEBSITE CHECK
+    // ==========================================
+    const apiMissingInWebsite = [];
 
-    console.log("\n❌ Sample mismatches:\n");
-
-    mismatch.slice(0, 25).forEach((m) => {
-      console.log(`🧱 ${m.product}`);
-      console.log(`   ❌ Your SKU: ${m.sku}`);
-
-      if (m.correct) {
-        console.log(`   ✅ Correct SKU: ${m.correct}`);
-      } else {
-        console.log(`   ⚠️ ${m.issue}`);
+    Object.keys(inventorySkuMap).forEach((sku) => {
+      if (!websiteSkuSet.has(sku)) {
+        apiMissingInWebsite.push({
+          sku,
+          product_name: inventorySkuMap[sku].Product_Name,
+          inventory_stock:
+            inventorySkuMap[sku].OnGround_Crates,
+        });
       }
-
-      console.log("");
     });
 
-    fs.writeFileSync(
-      "api-mismatch.json",
-      JSON.stringify(mismatch, null, 2)
+    // ==========================================
+    // SUMMARY
+    // ==========================================
+    console.log("\n================================");
+    console.log("📊 AUDIT SUMMARY");
+    console.log("================================");
+
+    console.log(
+      "Website Variations:",
+      totalVariations
     );
 
-    console.log("📁 Saved: api-mismatch.json");
-    console.log("\n🎉 Done\n");
+    console.log(
+      "Website → API Missing:",
+      websiteMissingInApi.length
+    );
 
+    console.log(
+      "API → Website Missing:",
+      apiMissingInWebsite.length
+    );
+
+    // ==========================================
+    // SAMPLE OUTPUT
+    // ==========================================
+    console.log(
+      "\n❌ WEBSITE SKUs NOT FOUND IN API:\n"
+    );
+
+    websiteMissingInApi
+      .slice(0, 20)
+      .forEach((item) => {
+        console.log(
+          `🧱 ${item.product}`
+        );
+        console.log(
+          `   SKU: ${item.sku}`
+        );
+        console.log(
+          `   ISSUE: ${item.issue}`
+        );
+        console.log("");
+      });
+
+    console.log(
+      "\n⚠️ API SKUs NOT FOUND ON WEBSITE:\n"
+    );
+
+    apiMissingInWebsite
+      .slice(0, 20)
+      .forEach((item) => {
+        console.log(
+          `SKU: ${item.sku}`
+        );
+        console.log(
+          `Product: ${item.product_name}`
+        );
+        console.log(
+          `Stock: ${item.inventory_stock}`
+        );
+        console.log("");
+      });
+
+    // ==========================================
+    // SAVE REPORTS
+    // ==========================================
+    fs.writeFileSync(
+      "website-missing-in-api.json",
+      JSON.stringify(
+        websiteMissingInApi,
+        null,
+        2
+      )
+    );
+
+    fs.writeFileSync(
+      "api-missing-in-website.json",
+      JSON.stringify(
+        apiMissingInWebsite,
+        null,
+        2
+      )
+    );
+
+    console.log(
+      "\n📁 Saved: website-missing-in-api.json"
+    );
+
+    console.log(
+      "📁 Saved: api-missing-in-website.json"
+    );
+
+    console.log("\n🎉 Audit Complete\n");
   } catch (err) {
-    console.error("❌ Error:", err.message);
+    console.error(
+      "❌ Error:",
+      err.response?.data || err.message
+    );
   }
 }
 
-// =============================
-// HELPERS
-// =============================
-
-function extractItemNo(sku) {
-  if (!sku) return "";
-  return sku.split("/")[0].trim();
-}
-
-function extractVariant(sku) {
-  if (!sku) return "";
-
-  const part = sku.split("/")[1] || "";
-  const clean = part.trim().toUpperCase();
-
-  // remove leading junk like 40, 64, A, B etc
-  const match = clean.match(/(\d{2,3}[A-Z]+)/);
-
-  return match ? match[1] : clean;
-}
-
-function findClosestVariant(input, variants) {
-  let best = null;
-  let score = -1;
-
-  variants.forEach((v) => {
-    let s = 0;
-
-    if (v === input) s += 100;
-
-    if (v.slice(-3) === input.slice(-3)) s += 40;
-
-    if (v.includes(input) || input.includes(v)) s += 30;
-
-    if (s > score) {
-      score = s;
-      best = v;
-    }
-  });
-
-  return best;
-}
-
-module.exports = { run };
+run();

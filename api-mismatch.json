@@ -1,23 +1,23 @@
 [
   {
     "product": "Cloud Grey Wall Cladding Corner",
-    "sku": "CGC-600200-CGR / 43050NCM",
-    "correct": "CGC-600200-CGR / 43050NCM"
+    "sku": "CLG-600X200-CGR / 43050NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Dark Grey Wall Cladding Corner",
-    "sku": "DGC-600150-CGR / 2545NCM",
-    "correct": "DGC-600150-CGR / 2545NCM"
+    "sku": "DGC-600X150-CGR / 1442545NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Golden Wall Cladding Corner",
-    "sku": "CCG-600150-CGR / 2545NBC",
-    "correct": "CCG-600150-CGR / 2545NBC"
+    "sku": "GCC-600X150-CGR / 1442545NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Shimla White Wall Cladding",
-    "sku": "SWS-600150-ISL / 2161525NNH",
-    "correct": "SWS-600150-ISL / 2161525NNH"
+    "sku": "SHW-600X150-IPA / 21620NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Grey Limestone Natural Paving",
@@ -31,8 +31,13 @@
   },
   {
     "product": "Kota Blue Natural Limestone Paving",
-    "sku": "KB-MIXPACK-ILS / A22NCM",
-    "correct": "KB-MIXPACK-ILS / A22NCM"
+    "sku": "KBL-MIXPACK-ILI / 4822NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Kota Blue Natural Limestone Paving",
+    "sku": "KBL-900X600-ILI / 2622NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Antique Grey Limestone Paving",
@@ -56,63 +61,113 @@
   },
   {
     "product": "Dark Grey Limestone Paving",
-    "sku": "KGN-MIXPACK-ILS / A4822HHTBM",
-    "correct": "KGN-MIXPACK-ILS / A4822HHTBM"
+    "sku": "DGL-MIXPACK-ILI / 4822HHM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Antique Yellow Limestone Paving",
+    "sku": "YEL-MIXPACK-ILO / 4822TBH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Antique Yellow Limestone Paving",
+    "sku": "YEL-900X600-ILO / 3022TBH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Tumbled Yellow Limestone Paving",
-    "sku": "YL-MIXPACK-ILS / A22CTH",
-    "correct": "YL-MIXPACK-ILS / A22CTH"
+    "sku": "YEL-MIXPACK-ILO / 4822CTH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Tumbled Yellow Limestone Paving",
-    "sku": "YL-600900-ILS / 22CTH30",
-    "correct": "YL-600900-ILS / 22CTH30"
+    "sku": "YEL-900X600-ILO / 3022CTH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Yellow Limestone Natural Paving",
-    "sku": "YL-MIXPACK-ILS / A22TBH",
-    "correct": "YL-MIXPACK-ILS / A22TBH"
+    "sku": "YEL-MIXPACK-ILO / 4822NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Yellow Limestone Natural Paving",
+    "sku": "YEL-900X600-ILO / 3022NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Black Limestone Natural Paving",
-    "sku": "BL-MIXPACK-ILS / A22NCM",
-    "correct": "BL-MIXPACK-ILS / A22NCM"
+    "sku": "BLC-MIXPACK-ILS / 4822NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Black Limestone Natural Paving",
+    "sku": "BLC-900X600-ILS / 3022NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Egyptian Acid Washed Limestone Paving",
-    "sku": "ELP-600900-ELS / 3020ADM",
-    "correct": "ELP-600900-ELS / 3020HTM"
+    "sku": "EGL-MIXPACK-ELI / 5720ADM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Egyptian Acid Washed Limestone Paving",
+    "sku": "EGL-900X600-ELI / 3020ADM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Egyptian Limestone Paving",
-    "sku": "ELP-600900-ELS / 3020HTM",
-    "correct": "ELP-600900-ELS / 3020HTM"
+    "sku": "EGL-900X600-ELI / 3020HTM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Egyptian Limestone Paving",
     "sku": "ELP-MIXPACK-ELS / 20HTM",
-    "correct": "ELP-MIXPACK-ELS / 20ADM"
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Raj Green Honed Sandstone Paving",
+    "sku": "RG-600900-ISS / 20HCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Raj Green Natural Sandstone Paving",
-    "sku": "RG-MIXPACK-ISS / B22NCH",
-    "correct": "RG-MIXPACK-ISS / B22NCH"
+    "sku": "RGL-900X600-ISO / 3522NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Raj Green Natural Sandstone Paving",
+    "sku": "RGL-MIXPACK-ISO / 7122NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Raj Blend Natural Sandstone Paving",
-    "sku": "RB-MIXPACK-ISS / B18NCH",
-    "correct": "RB-MIXPACK-ISS / B18NCH"
+    "sku": "RBD-900X600-ISO / 3518NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Raj Blend Natural Sandstone Paving",
-    "sku": "RB-MIXPACK-ISS / B22NCH",
-    "correct": "RB-MIXPACK-ISS / 6422NCH"
+    "sku": "RBD-MIXPACK-ISO / 7118NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Raj Blend Natural Sandstone Paving",
+    "sku": "RBD-MIXPACK-ISO / 7122NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Raj Blend Natural Sandstone Paving",
+    "sku": "RBD-900X600-ISO / 3522NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Sagar Black Natural Sandstone Paving",
-    "sku": "SB-MIXPACK-ISS / B22NCH",
-    "correct": "SB-MIXPACK-ISS / B22NCH"
+    "sku": "SAB-MIXPACK-ISO / 7122NCT",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Sagar Black Tumbled Sandstone Paving",
+    "sku": "SAB-MIXPACK-ISO / 7122NTH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Mint Multi Honed Sandstone Natural Paving",
@@ -121,128 +176,198 @@
   },
   {
     "product": "Mint Fossil Sandstone Natural Paving",
-    "sku": "MF-MIXPACK-ISS / B22NCH",
+    "sku": "MFL-MIXPACK-ISO / 7122NCH",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Mint Fossil Sandstone Natural Paving",
-    "sku": "MWH-600900-ISS / 20HCM",
+    "sku": "MFL-900X600-ISO / 3522NCH",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Kandla Grey Honed Sandstone Paving",
-    "sku": "KG-MIXPACK-ISS / B20HCM",
-    "correct": "KG-MIXPACK-ISS / B20HCM"
+    "sku": "KGY-MIXPACK-ISO / 7120HCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Kandla Grey Honed Sandstone Paving",
+    "sku": "KG-900X600-ISO / 3420HCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Kandla Grey Natural Sandstone Paving",
-    "sku": "KG-MIXPACK-ISS / B22NCH",
-    "correct": "KG-MIXPACK-ISS / B22NCH"
+    "sku": "KGY-MIXPACK-ISO / 7122NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Kandla Grey Natural Sandstone Paving",
-    "sku": "KG-MIXPACK-ISS / B18NCH",
-    "correct": "KG-MIXPACK-ISS / B18NCH"
+    "sku": "KG-900X600-ISO / 3522NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Kandla Grey Natural Sandstone Paving",
+    "sku": "KGY-MIXPACK-ISO / 7118NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Kandla Grey Natural Sandstone Paving",
+    "sku": "KG-900X600-ISO / 3518NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Buff Natural Sandstone Paving",
-    "sku": "BF-MIXPACK-ISS / B22NCH",
-    "correct": "BF-MIXPACK-ISS / B22NCH"
+    "sku": "BCD-MIXPACK-ISO / 7118NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Buff Natural Sandstone Paving",
+    "sku": "BCD-900X600-ISO / 3522NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Buff Natural Sandstone Paving",
+    "sku": "BCD-MIXPACK-ISO / 7122NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Buff Honed Sandstone Paving",
-    "sku": "BF-MIXPACK-ISS / B20HCM",
-    "correct": "BF-MIXPACK-ISS / B20HCM"
+    "sku": "BCD-MIXPACK-ISO / 7120HCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Buff Honed Sandstone Paving",
+    "sku": "BCD-900X600-ISO / 3420HCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Autumn Brown Natural Sandstone Paving",
-    "sku": "AB-MIXPACK-ISS / B22NCH",
-    "correct": "AB-MIXPACK-ISS / E22NCH"
+    "sku": "AUB-MIXPACK-ISO / 7122NCH",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Autumn Brown Natural Sandstone Paving",
+    "sku": "AUB-900X600-ISO / 3522NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Himachal White Wall Cladding",
-    "sku": "HWS-600150-ISL / 2161525NNH",
-    "correct": "HWS-600150-ISL / 2161525NNH"
+    "sku": "HWE-600X150-ISO / 2161220NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Cloud Grey Wall Cladding Panel",
-    "sku": "CGC-600200-CGR / 43050NCC",
-    "correct": "CGC-600200-CGR / 43050NCC"
+    "sku": "CLG-600X200-CGR / 43050NCC",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Dark Grey Wall Cladding Panel",
-    "sku": "DGC-600150-CGR / 2545NCC",
-    "correct": "DGC-600150-CGR / 2545NCC"
+    "sku": "DGC-600X150-CGR / 1442545NCC",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Golden Wall Cladding Panel",
-    "sku": "CCG-600150-CGR / 2545NBC",
-    "correct": "CCG-600150-CGR / 2545NBC"
+    "sku": "GCC-600X150-CGR / 1442545NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Zeera Green Wall Cladding",
+    "sku": "ZEG-600X150-IPA / 21620NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Black Slate Wall Cladding",
+    "sku": "JBS-600X150-ISL / 2161220NNH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Autumn Brown Wall Cladding",
-    "sku": "AB-600150-ISS / 20CLM",
+    "sku": "AB-600X150-ISS / 21620NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Jack Multi Wall Cladding",
+    "sku": "JMU-600X150-IPA / 2161220NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Kandla Grey Wall Cladding",
+    "sku": "KGY-600X150-ISO / 2161220NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Mint Fossil Wall Cladding",
-    "sku": "MF-600150-ISS / 20CLM",
+    "sku": "MFL-600X150-ISO / 2161220NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Silver Grey Wall Cladding",
+    "sku": "SGC-600X150-ISO / 2161220NCH",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Rustic Slate Stone",
-    "sku": "CG-MIXPACK-ISL / A20NCM",
-    "correct": "CG-MIXPACK-ISL / A20NCM"
+    "sku": "RUS-MIXPACK-ISL / 4820NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Rustic Slate Stone",
+    "sku": "RUS-900X600-ISL / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Brazilian Black Slate Stone",
+    "sku": "BBS-900X600-BSL / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Yellow Limestone Cobblestone Paving",
-    "sku": "YL-100100-ILS / 3040NTH",
-    "correct": "YL-100100-ILS / 3040NTH"
+    "sku": "YEL-100X100-ILI / 1003040NCH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Yellow Limestone Cobblestone Paving",
-    "sku": "YL-100200-ILS / 3040NTH",
-    "correct": "YL-100200-ILS / 3040NTH"
+    "sku": "YEL-200X100-ILI / 5003040CTH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Black Limestone Cobblestone Paving",
-    "sku": "BL-100100-ILS / 3545NNH",
-    "correct": "BL-100100-ILS / 3545NNH"
+    "sku": "BLC-100X100-ISO / 9403550NNH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Black Limestone Cobblestone Paving",
-    "sku": "BL-100200-ILS / 3545NNH",
-    "correct": "BL-100200-ILS / 3545NNH"
+    "sku": "BLC-200X100-ILI / 4703550NNH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Raj Green Cobblestone Paving",
-    "sku": "RB-100100-ISS / 3555NNH",
-    "correct": "RB-100100-ISS / 3555NNH"
+    "sku": "RAJ-100X100-ISO / 9003555NNH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Raj Green Cobblestone Paving",
-    "sku": "RB-100200-ISS / 3555NNH",
-    "correct": "RB-100200-ISS / 3555NNH"
+    "sku": "RAJ-200X100-ISA / 4503555NNH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Kandla Grey Cobblestone Paving",
-    "sku": "KG-100100-ISS / 2535NNH",
-    "correct": "KG-100100-ISS / 2535NNH"
+    "sku": "KGY-100X100-ICO / 16002535NH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Kandla Grey Cobblestone Paving",
-    "sku": "KG-100200-ISS / 2535NNH",
-    "correct": "KG-100200-ISS / 2535NNH"
+    "sku": "KGY-200X100-ICO / 8002535NNH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Kandla Grey Cobblestone Paving",
-    "sku": "KG-100100-ISS / 3555NNH",
-    "correct": "KG-100100-ISS / 3555NNH"
+    "sku": "KGY-100X100-ICO / 9003555NH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Kandla Grey Cobblestone Paving",
-    "sku": "KG-100200-ISS / 3555NNH",
-    "correct": "KG-100200-ISS / 3555NNH"
+    "sku": "KGY-200X100-ICO / 4503555NNH",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Red Bricks",
@@ -256,42 +381,112 @@
   },
   {
     "product": "Dijon Limestone Beige Porcelain",
-    "sku": "DLB-600900-IPO / 4020NCM",
+    "sku": "DLE-900X600-IPO / 4020NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Dijon Limestone Grey Porcelain",
-    "sku": "DLG-600900-IPO / 4020NCM",
-    "correct": "DLG-600900-IPO / 4020NCM"
+    "sku": "DLG-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Statuario Porcelain",
-    "sku": "SRP-600900-IPO / 20NBCM",
+    "sku": "SDG-900X600-IPO / 4020NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "County Anthracite Porcelain",
-    "sku": "CAP-150900-IPO / 20NCM",
-    "correct": "CAP-150900-IPO / 15220NCM"
+    "sku": "CAP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "County Anthracite Porcelain",
+    "sku": "CAP-900X150-IPO / 15220NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Raj Green Porcelain",
-    "sku": "RG-MIXPACK-IPO / 20NCM",
+    "sku": "RGP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Raj Green Porcelain",
+    "sku": "RGP-MIXPACK-IPO / 7220NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Hammerstone Beige Porcelain",
-    "sku": "HB-600900-IPO / 20NBCM",
+    "sku": "HAM-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Rough Bruno Porcelain",
+    "sku": "RBP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "County Lgy Porcelain",
+    "sku": "CLP-900X150-IPO / 14420NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "County Lgy Porcelain",
+    "sku": "CLP-900X600-IPO / 4020NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "County Crema Porcelain",
-    "sku": "CCP-600900-IPO / 20NCM",
+    "sku": "CCP-600X600-IPO / 6420NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "County Crema Porcelain",
+    "sku": "CCP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Brazilian Grey Porcelain",
+    "sku": "BGP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Quartz White Porcelain",
+    "sku": "QWP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Brazilian Black Porcelain",
+    "sku": "BBP-900X600-IPO / 4020NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Himalyan White Porcelain",
-    "sku": "HWP-600900-IPO / 20NCM",
+    "sku": "HNP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "County Gris Porcelain",
+    "sku": "CGP-600X600-IPO / 6420NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "County Gris Porcelain",
+    "sku": "CGP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Earthcore Grey Porcelain",
+    "sku": "EGP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Abbey Porcelain",
+    "sku": "ABY-600X600-IPO / 6420NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Abbey Porcelain",
+    "sku": "ABY-900X600-IPO / 4020NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
@@ -301,13 +496,53 @@
   },
   {
     "product": "Kandla Grey Porcelain",
-    "sku": "KGP-MIXPACK-IPO / D20NCM",
-    "correct": "KGP-MIXPACK-IPO / D20NCM"
+    "sku": "KGP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Kandla Grey Porcelain",
+    "sku": "KGP-1200X600-IPO / 3020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Kandla Grey Porcelain",
+    "sku": "KGP-MIXPACK-IPO / 7220NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Hammer Stone Grey Porcelain",
+    "sku": "HSG-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Quartz Grey Porcelain",
-    "sku": "QGP-600600-IPO / 6420NCM",
-    "correct": "QGP-600600-IPO / 6420NCM"
+    "sku": "QGP-600X600-IPO / 6420NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Quartz Grey Porcelain",
+    "sku": "QGP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Anthracite Grey Porcelain",
+    "sku": "AGY-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Slate Imperio Porcelain",
+    "sku": "SLI-900X600-IPO / 4040NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Getafe Grey Porcelain",
+    "sku": "GGP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Getafe Beige Porcelain",
+    "sku": "GBE-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Getafe Nero Porcelain",
@@ -316,32 +551,52 @@
   },
   {
     "product": "Cross Over Grey Porcelain",
-    "sku": "CGY-600900-IPO / 20NBCM",
+    "sku": "COG-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Cross Over White Porcelain",
+    "sku": "CWP-900X600-IPO / 4020NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Cotta Crema Porcelain",
-    "sku": "CC-600600-IPO / 6420NCM",
-    "correct": "CC-600600-IPO / 6420NCM"
+    "sku": "COC-600X600-IPO / 6420NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Copper Slate Porcelain",
-    "sku": "CPP-600900-IPO / 4020NCM",
-    "correct": "CPP-600900-IPO / 4020NCM"
+    "sku": "CSP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Storm Bianco Porcelain",
-    "sku": "SOP-600900-IPO / 4020NCM",
-    "correct": "SOP-600900-IPO / 4020NCM"
+    "sku": "SBP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Storm Beige Porcelain",
-    "sku": "SEP-600900-IPO / 4020NCM",
+    "sku": "STB-900X600-IPO / 4020NCM",
     "issue": "ItemNo not found in Inventory API"
   },
   {
     "product": "Storm Grey Porcelain",
-    "sku": "SGP-600900-IPO / 4020NCM",
+    "sku": "STG-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Smoke Grey Porcelain",
+    "sku": "SGP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Buff Porcelain",
+    "sku": "BFP-900X600-IPO / 4020NCM",
+    "issue": "ItemNo not found in Inventory API"
+  },
+  {
+    "product": "Buff Porcelain",
+    "sku": "BFP-MIXPACK-IPO / 7220NCM",
     "issue": "ItemNo not found in Inventory API"
   }
 ]

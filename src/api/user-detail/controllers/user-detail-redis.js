@@ -56,7 +56,7 @@ module.exports = {
       const client = await redisService.connect();
       const key = `user:details:${user.id}`;
 
-      // 1️⃣ CACHE CHECK
+      // CACHE CHECK
       const cached = await client.get(key);
       if (cached) {
         const data = JSON.parse(cached);
@@ -98,7 +98,7 @@ module.exports = {
         userDetails,
       };
 
-      // 3️⃣ SAVE CACHE
+      // SAVE CACHE
       await client.set(key, JSON.stringify(payload), { EX: 300 });
 
       return ctx.send({ source: "db", ...payload });

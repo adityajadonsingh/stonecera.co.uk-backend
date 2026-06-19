@@ -39,14 +39,14 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
       "api::product.product",
       {
         populate: { variation: true },
-        limit: -1, 
+        limit: -1,
       },
     );
 
     return { products };
   },
 
-  // GET /api/products?limit=&page=
+  // GET /api/products?limit=&page=0
   async list(ctx) {
     const limit = parseInt(ctx.query.limit || "12", 10);
     const page = Math.max(parseInt(ctx.query.page || "1", 10), 1);
@@ -308,5 +308,55 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
     });
 
     return { success: true };
+  },
+
+  async syncStock(ctx) {
+    const updates = ctx.request.body;
+
+    let updated = 0;
+
+    for (const item of updates) {
+      const product = await strapi.entityService.findOne(
+        "api::product.product",
+        item.productId,
+        {
+          populate: {
+            variation: true,
+          },
+        },
+      );
+
+      if (!product) continue;
+
+      const variations = product.variation || [];
+
+      const updatedVariations = variations.map((v) => {
+        if (v.uuid == item.uuid) {
+          updated++;
+
+          return {
+            ...v,
+            Stock: Number(item.Stock),
+          };
+        }
+
+        return v;
+      });
+
+      await strapi.entityService.update(
+        "api::product.product",
+        item.productId,
+        {
+          data: {
+            variation: updatedVariations,
+          },
+        },
+      );
+    }
+
+    return {
+      success: true,
+      updated,
+    };
   },
 }));
