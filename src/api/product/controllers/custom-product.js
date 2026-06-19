@@ -313,50 +313,70 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   async syncStock(ctx) {
     const updates = ctx.request.body;
 
-    let updated = 0;
-
-    for (const item of updates) {
-      const product = await strapi.entityService.findOne(
-        "api::product.product",
-        item.productId,
-        {
-          populate: {
-            variation: true,
-          },
+    const products = await strapi.entityService.findMany(
+      "api::product.product",
+      {
+        populate: {
+          variation: true,
         },
-      );
+        limit: -1,
+      },
+    );
 
-      if (!product) continue;
+    // SKU -> Stock map
+    const stockMap = new Map();
 
-      const variations = product.variation || [];
+    updates.forEach((u) => {
+      const sku = (u.SKU || "").trim().toUpperCase();
 
-      const updatedVariations = variations.map((v) => {
-        if (v.uuid == item.uuid) {
-          updated++;
+      if (!sku) return;
+
+      stockMap.set(sku, Number(u.Stock) || 0);
+    });
+
+    let updatedProducts = 0;
+    let updatedVariations = 0;
+
+    for (const product of products) {
+      let changed = false;
+
+      const variations = (product.variation || []).map((v) => {
+        const sku = (v.SKU || "").trim().toUpperCase();
+
+        if (!stockMap.has(sku)) {
+          return v;
+        }
+
+        const newStock = stockMap.get(sku);
+
+        if (Number(v.Stock) !== newStock) {
+          changed = true;
+          updatedVariations++;
 
           return {
             ...v,
-            Stock: Number(item.Stock),
+            Stock: newStock,
           };
         }
 
         return v;
       });
 
-      await strapi.entityService.update(
-        "api::product.product",
-        item.productId,
-        {
+      if (changed) {
+        await strapi.entityService.update("api::product.product", product.id, {
           data: {
-            variation: updatedVariations,
+            variation: variations,
           },
-        },
-      );
+        });
+
+        updatedProducts++;
+      }
     }
 
     return {
       success: true,
-      updated,
+      updatedProducts,
+      updatedVariations,
     };
   },
 }));
