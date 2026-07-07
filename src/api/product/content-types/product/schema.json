@@ -78,6 +78,12 @@
       "relation": "oneToMany",
       "target": "api::product-review.product-review",
       "mappedBy": "product"
+    },
+    "product_variants": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product-variant.product-variant",
+      "mappedBy": "product"
     }
   }
 }

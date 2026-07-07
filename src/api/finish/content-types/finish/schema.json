@@ -1,0 +1,29 @@
+{
+  "kind": "collectionType",
+  "collectionName": "finishes",
+  "info": {
+    "singularName": "finish",
+    "pluralName": "finishes",
+    "displayName": "Finish"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "Description": {
+      "type": "string"
+    },
+    "product_variants": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product-variant.product-variant",
+      "mappedBy": "finish"
+    }
+  }
+}

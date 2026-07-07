@@ -1,0 +1,32 @@
+{
+  "kind": "collectionType",
+  "collectionName": "thicknesses",
+  "info": {
+    "singularName": "thickness",
+    "pluralName": "thicknesses",
+    "displayName": "Thickness"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "string",
+      "required": true,
+      "unique": true
+    },
+    "Description": {
+      "type": "string"
+    },
+    "SortOrder": {
+      "type": "integer"
+    },
+    "product_variants": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::product-variant.product-variant",
+      "mappedBy": "thickness"
+    }
+  }
+}
