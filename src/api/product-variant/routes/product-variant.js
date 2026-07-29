@@ -1,9 +1,14 @@
-'use strict';
+"use strict";
 
-/**
- * product-variant router
- */
-
-const { createCoreRouter } = require('@strapi/strapi').factories;
-
-module.exports = createCoreRouter('api::product-variant.product-variant');
+module.exports = {
+  routes: [
+    {
+      method: "GET",
+      path: "/product-variants/:slug",
+      handler: "product-variant.customDetail",
+      config: {
+        auth: false,
+      },
+    },
+  ],
+};

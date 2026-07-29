@@ -15,8 +15,8 @@
       "type": "component",
       "component": "homepage.select-category",
       "repeatable": true,
-      "min": 3,
-      "max": 3
+      "min": 4,
+      "max": 4
     }
   },
   "config": {}

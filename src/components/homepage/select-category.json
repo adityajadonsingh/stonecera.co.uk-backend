@@ -10,7 +10,7 @@
       "relation": "oneToOne",
       "target": "api::category.category"
     },
-    "startingFrom": {
+    "finishName": {
       "type": "string"
     }
   },

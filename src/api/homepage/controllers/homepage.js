@@ -1,5 +1,5 @@
 "use strict";
-
+console.log("========== CONTROLLER HIT ==========");
 module.exports = {
   async find(ctx) {
     const entry = await strapi.entityService.findOne(
@@ -81,26 +81,44 @@ module.exports = {
       ? {
           sectionTitle: fc.section_title || "",
           sectionSubtitle: fc.section_subtitle || "",
-          categories: (fc.categories || []).map((item) => {
-            const cat = item.category;
-            const firstImage = cat?.images?.[0] || null;
+          categories: await Promise.all(
+            (fc.categories || []).map(async (item) => {
+              const cat = item.category;
+              const firstImage = cat?.images?.[0] || null;
 
-            return {
-              name: cat?.name || "",
-              slug: cat?.slug || "",
-              images: firstImage
-                ? [
-                    {
-                      url: firstImage.url,
-                      alt: firstImage.alternativeText || "",
+              const productCount = await strapi.entityService.count(
+                "api::product.product",
+                {
+                  filters: {
+                    category: {
+                      id: cat.id,
                     },
-                  ]
-                : null,
-              startingFrom: item.startingFrom || "",
-            };
-          }),
+                  },
+                },
+              );
+
+              return {
+                name: cat?.name || "",
+                slug: cat?.slug || "",
+
+                images: firstImage
+                  ? [
+                      {
+                        url: firstImage.url,
+                        alt: firstImage.alternativeText || "",
+                      },
+                    ]
+                  : null,
+
+                finishName: item.finishName || "",
+
+                productCount,
+              };
+            }),
+          ),
         }
       : null;
+    console.log("featuredCategory", featuredCategory);
 
     /* ============= BEST SELLERS ============== */
     const bs = entry.best_seller_section;

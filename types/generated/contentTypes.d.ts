@@ -917,7 +917,6 @@ export interface ApiProductVariantProductVariant
       Schema.Attribute.Private;
     name: Schema.Attribute.String & Schema.Attribute.Required;
     packSize: Schema.Attribute.Decimal & Schema.Attribute.Required;
-    per_m2: Schema.Attribute.Decimal & Schema.Attribute.Required;
     pieces: Schema.Attribute.Integer & Schema.Attribute.Required;
     price: Schema.Attribute.Decimal & Schema.Attribute.Required;
     product: Schema.Attribute.Relation<'manyToOne', 'api::product.product'>;

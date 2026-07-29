@@ -83,10 +83,6 @@
       "type": "decimal",
       "required": true
     },
-    "per_m2": {
-      "type": "decimal",
-      "required": true
-    },
     "pieces": {
       "type": "integer",
       "required": true

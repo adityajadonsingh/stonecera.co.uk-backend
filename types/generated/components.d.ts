@@ -36,8 +36,8 @@ export interface HomepageFeatureCategories extends Struct.ComponentSchema {
     categories: Schema.Attribute.Component<'homepage.select-category', true> &
       Schema.Attribute.SetMinMax<
         {
-          max: 3;
-          min: 3;
+          max: 4;
+          min: 4;
         },
         number
       >;
@@ -84,7 +84,7 @@ export interface HomepageSelectCategory extends Struct.ComponentSchema {
   };
   attributes: {
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
-    startingFrom: Schema.Attribute.String;
+    finishName: Schema.Attribute.String;
   };
 }
 
