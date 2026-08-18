@@ -10,7 +10,7 @@
       "relation": "oneToOne",
       "target": "api::category.category"
     },
-    "startingFrom": {
+    "sub_heading": {
       "type": "string"
     }
   },

@@ -642,6 +642,7 @@ export interface ApiHomepageHomepage extends Struct.SingleTypeSchema {
       'homepage.review-section',
       false
     >;
+    FAQ_section: Schema.Attribute.Component<'ui.fa-qs', false>;
     featured_categories_section: Schema.Attribute.Component<
       'homepage.feature-categories',
       false

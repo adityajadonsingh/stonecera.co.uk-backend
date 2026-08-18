@@ -36,8 +36,8 @@ export interface HomepageFeatureCategories extends Struct.ComponentSchema {
     categories: Schema.Attribute.Component<'homepage.select-category', true> &
       Schema.Attribute.SetMinMax<
         {
-          max: 3;
-          min: 3;
+          max: 4;
+          min: 4;
         },
         number
       >;
@@ -84,7 +84,7 @@ export interface HomepageSelectCategory extends Struct.ComponentSchema {
   };
   attributes: {
     category: Schema.Attribute.Relation<'oneToOne', 'api::category.category'>;
-    startingFrom: Schema.Attribute.String;
+    sub_heading: Schema.Attribute.String;
   };
 }
 
@@ -169,10 +169,10 @@ export interface ProductProductVariation extends Struct.ComponentSchema {
         'Flamed',
         'Half honed and tumbled brushed',
         'Honed',
-        'Honed/tumbled',
+        'Honed/Tumbled',
         'Natural',
-        'Natural half honed And tumbled brushed',
-        'r11',
+        'Natural Half Honed And Tumbled Brushed',
+        'R11',
         'Tumbled',
       ]
     >;
@@ -239,6 +239,45 @@ export interface SeoMeta extends Struct.ComponentSchema {
   };
 }
 
+export interface UiFaQs extends Struct.ComponentSchema {
+  collectionName: 'components_ui_fa_qs';
+  info: {
+    displayName: 'FAQs';
+  };
+  attributes: {
+    FAQ: Schema.Attribute.Component<'ui.faq-component', true>;
+  };
+}
+
+export interface UiFaqComponent extends Struct.ComponentSchema {
+  collectionName: 'components_ui_faq_components';
+  info: {
+    displayName: 'FAQ_component';
+  };
+  attributes: {
+    answer: Schema.Attribute.RichText &
+      Schema.Attribute.Required &
+      Schema.Attribute.CustomField<
+        'plugin::ckeditor5.CKEditor',
+        {
+          preset: 'defaultHtml';
+        }
+      >;
+    question: Schema.Attribute.RichText &
+      Schema.Attribute.Required &
+      Schema.Attribute.CustomField<
+        'plugin::ckeditor5.CKEditor',
+        {
+          preset: 'defaultHtml';
+        }
+      >;
+    sort_order: Schema.Attribute.Integer &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique &
+      Schema.Attribute.DefaultTo<1>;
+  };
+}
+
 declare module '@strapi/strapi' {
   export module Public {
     export interface ComponentSchemas {
@@ -254,6 +293,8 @@ declare module '@strapi/strapi' {
       'order.order-item': OrderOrderItem;
       'product.product-variation': ProductProductVariation;
       'seo.meta': SeoMeta;
+      'ui.fa-qs': UiFaQs;
+      'ui.faq-component': UiFaqComponent;
     }
   }
 }

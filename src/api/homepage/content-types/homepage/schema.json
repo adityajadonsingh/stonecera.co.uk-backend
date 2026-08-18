@@ -35,6 +35,11 @@
       "type": "component",
       "component": "seo.meta",
       "repeatable": false
+    },
+    "FAQ_section": {
+      "type": "component",
+      "component": "ui.fa-qs",
+      "repeatable": false
     }
   }
 }

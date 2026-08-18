@@ -1,4 +1,8 @@
 const { createCoreController } = require("@strapi/strapi").factories;
+const {
+  transformVariation,
+  selectProductCardVariation,
+} = require("../../../utils/product-pricing");
 
 const ENUMS = {
   thickness: [
@@ -53,7 +57,13 @@ module.exports = createCoreController(
       const categoriesRaw = await strapi.db
         .query("api::category.category")
         .findMany({
-          select: ["name", "slug", "categoryDiscount", "updatedAt", "createdAt"],
+          select: [
+            "name",
+            "slug",
+            "categoryDiscount",
+            "updatedAt",
+            "createdAt",
+          ],
           populate: {
             images: { select: ["id", "url", "alternativeText"] },
           },
@@ -78,7 +88,7 @@ module.exports = createCoreController(
                   alt: img.alternativeText,
                 }))
               : [],
-            updatedAt: cat.updatedAt,  
+            updatedAt: cat.updatedAt,
           });
         }
       }
@@ -89,25 +99,83 @@ module.exports = createCoreController(
     // ----------------------------------------------------------------
     async customDetail(ctx) {
       const { slug } = ctx.params;
-      const { price, colorTone, finish, thickness, size } = ctx.query;
 
+      const { price, colorTone, finish, thickness, size, pcs, packSize } =
+        ctx.query;
+
+      // ------------------------------------------------------------
+      // Helpers
+      // ------------------------------------------------------------
+
+      const toNumber = (value) => {
+        const num = Number(value);
+        return Number.isFinite(num) ? num : 0;
+      };
+
+      const parseMultiValue = (value) => {
+        if (!value) return [];
+
+        if (Array.isArray(value)) {
+          return value
+            .flatMap((item) => String(item).split(","))
+            .map((item) => item.trim())
+            .filter(Boolean);
+        }
+
+        return String(value)
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean);
+      };
+
+      const matchesMultiFilter = (value, selectedValues) => {
+        if (!selectedValues.length) return true;
+
+        return selectedValues.includes(value);
+      };
+
+      // ------------------------------------------------------------
       // Parse filters
-      const filters = {};
-      if (price) {
-        const [minPrice, maxPrice] = price.split("-").map(Number);
-        filters.Price = { $gte: minPrice, $lte: maxPrice };
-      }
-      if (colorTone) filters["variation.ColorTone"] = colorTone.trim();
-      if (finish) filters["variation.Finish"] = finish.trim();
-      if (thickness) filters["variation.Thickness"] = thickness.trim();
-      if (size) filters["variation.Size"] = size.trim();
+      // ------------------------------------------------------------
 
+      const selectedColorTones = parseMultiValue(colorTone);
+      const selectedFinishes = parseMultiValue(finish);
+      const selectedThicknesses = parseMultiValue(thickness);
+      const selectedSizes = parseMultiValue(size);
+      const selectedPcs = parseMultiValue(pcs);
+      const selectedPackSizes = parseMultiValue(packSize);
+
+      let priceFilter = null;
+
+      if (price) {
+        const [min, max] = String(price).split("-").map(Number);
+
+        if (Number.isFinite(min) && Number.isFinite(max)) {
+          priceFilter = {
+            min,
+            max,
+          };
+        }
+      }
+
+      // ------------------------------------------------------------
       // Fetch category with products + variations
+      // ------------------------------------------------------------
+
       const category = await strapi.db.query("api::category.category").findOne({
-        where: { slug },
+        where: {
+          slug,
+        },
+
         populate: {
-          bannerImg: { select: ["id", "url", "alternativeText"] },
-          images: { select: ["id", "url", "alternativeText"] },
+          bannerImg: {
+            select: ["id", "url", "alternativeText"],
+          },
+
+          images: {
+            select: ["id", "url", "alternativeText"],
+          },
+
           products: {
             select: [
               "name",
@@ -116,11 +184,16 @@ module.exports = createCoreController(
               "updatedAt",
               "productDiscount",
             ],
+
             populate: {
-              images: { select: ["id", "url", "alternativeText"] },
+              images: {
+                select: ["id", "url", "alternativeText"],
+              },
+
               variation: true,
             },
           },
+
           seo: {
             populate: {
               og_image: true,
@@ -130,276 +203,397 @@ module.exports = createCoreController(
         },
       });
 
-      if (!category) return ctx.notFound("Category not found");
+      if (!category) {
+        return ctx.notFound("Category not found");
+      }
 
-      // --- Compute Price for each variation based on PackSize * Per_m2
-      category.products.forEach((prod) => {
-        prod.variation.forEach((v) => {
-          const per_m2 =
-            typeof v.Per_m2 === "number" ? v.Per_m2 : parseFloat(v.Per_m2) || 0;
-          const pack =
-            typeof v.PackSize === "number"
-              ? v.PackSize
-              : parseFloat(v.PackSize) || 0;
+      // ------------------------------------------------------------
+      // Get all variations
+      //
+      // Keep the original Strapi variation data here because
+      // filtering works against the raw variation fields.
+      // Pricing itself is handled later by product-pricing.js.
+      // ------------------------------------------------------------
 
-          const raw = per_m2 && pack ? per_m2 * pack : 0;
-          v.Price = Math.floor(raw);
-          v.Per_m2 = per_m2;
-        });
+      const allVariations = category.products.flatMap(
+        (product) => product.variation || [],
+      );
+
+      // ------------------------------------------------------------
+      // Dynamic pack-price range
+      //
+      // Price = PACK PRICE stored in Strapi.
+      // We intentionally do NOT use Per_m2 for filtering.
+      // ------------------------------------------------------------
+
+      const allPrices = allVariations
+        .map((variation) => toNumber(variation.Price))
+        .filter((value) => value > 0);
+
+      const minPrice = allPrices.length ? Math.min(...allPrices) : 0;
+
+      const maxPrice = allPrices.length ? Math.max(...allPrices) : 0;
+
+      // ------------------------------------------------------------
+      // Filter matching
+      // ------------------------------------------------------------
+
+      const variationMatches = (variation, activeFilters) => {
+        // ---------------- PRICE ----------------
+
+        if (
+          activeFilters.price &&
+          (variation.Price < activeFilters.price.min ||
+            variation.Price > activeFilters.price.max)
+        ) {
+          return false;
+        }
+
+        // ---------------- COLOR ----------------
+
+        if (
+          activeFilters.colorTone.length &&
+          !matchesMultiFilter(variation.ColorTone, activeFilters.colorTone)
+        ) {
+          return false;
+        }
+
+        // ---------------- FINISH ----------------
+
+        if (
+          activeFilters.finish.length &&
+          !matchesMultiFilter(variation.Finish, activeFilters.finish)
+        ) {
+          return false;
+        }
+
+        // ---------------- THICKNESS ----------------
+
+        if (
+          activeFilters.thickness.length &&
+          !matchesMultiFilter(variation.Thickness, activeFilters.thickness)
+        ) {
+          return false;
+        }
+
+        // ---------------- SIZE ----------------
+
+        if (
+          activeFilters.size.length &&
+          !matchesMultiFilter(variation.Size, activeFilters.size)
+        ) {
+          return false;
+        }
+
+        // ---------------- PCS ----------------
+
+        if (
+          activeFilters.pcs.length &&
+          !activeFilters.pcs.includes(String(variation.Pcs))
+        ) {
+          return false;
+        }
+
+        // ---------------- PACK SIZE ----------------
+
+        if (
+          activeFilters.packSize.length &&
+          !activeFilters.packSize.includes(String(variation.PackSize))
+        ) {
+          return false;
+        }
+
+        return true;
+      };
+
+      // ------------------------------------------------------------
+      // Active filters
+      // ------------------------------------------------------------
+
+      const activeFilters = {
+        price: priceFilter,
+        colorTone: selectedColorTones,
+        finish: selectedFinishes,
+        thickness: selectedThicknesses,
+        size: selectedSizes,
+        pcs: selectedPcs,
+        packSize: selectedPackSizes,
+      };
+
+      // ------------------------------------------------------------
+      // Filter products
+      // ------------------------------------------------------------
+
+      const getFilteredProducts = (filtersToUse) => {
+        return category.products
+          .map((product) => {
+            const filteredVariations = (product.variation || []).filter(
+              (variation) => variationMatches(variation, filtersToUse),
+            );
+
+            return {
+              ...product,
+              variation: filteredVariations,
+            };
+          })
+          .filter((product) => product.variation.length > 0);
+      };
+
+      const filteredProducts = getFilteredProducts(activeFilters);
+
+      // ------------------------------------------------------------
+      // Filter counts
+      //
+      // Each filter ignores itself when calculating its counts.
+      // This allows multiple filters to work together.
+      // ------------------------------------------------------------
+
+      const createFiltersWithout = (filterName) => ({
+        price: filterName === "price" ? null : activeFilters.price,
+
+        colorTone: filterName === "colorTone" ? [] : activeFilters.colorTone,
+
+        finish: filterName === "finish" ? [] : activeFilters.finish,
+
+        thickness: filterName === "thickness" ? [] : activeFilters.thickness,
+
+        size: filterName === "size" ? [] : activeFilters.size,
+
+        pcs: filterName === "pcs" ? [] : activeFilters.pcs,
+
+        packSize: filterName === "packSize" ? [] : activeFilters.packSize,
       });
 
-      // Prepare base filter counts
+      const computeVisibleVariations = (excludeFilter) => {
+        const products = getFilteredProducts(
+          createFiltersWithout(excludeFilter),
+        );
+
+        return products.flatMap((product) => product.variation || []);
+      };
+
+      // ------------------------------------------------------------
+      // Base filter counts
+      // ------------------------------------------------------------
+
       const filterCounts = {
-        price: {},
-        colorTone: Object.fromEntries(ENUMS.colorTone.map((opt) => [opt, 0])),
+        price: {
+          min: minPrice,
+          max: maxPrice,
+        },
+
+        colorTone: Object.fromEntries(
+          ENUMS.colorTone.map((option) => [option, 0]),
+        ),
+
         finish: {},
-        thickness: Object.fromEntries(ENUMS.thickness.map((opt) => [opt, 0])),
-        size: Object.fromEntries(ENUMS.size.map((opt) => [opt, 0])),
+
+        thickness: Object.fromEntries(
+          ENUMS.thickness.map((option) => [option, 0]),
+        ),
+
+        size: Object.fromEntries(ENUMS.size.map((option) => [option, 0])),
+
         pcs: {},
+
         packSize: {},
       };
 
-      const priceRanges = [
-        { label: "0-200", min: 0, max: 200 },
-        { label: "200-300", min: 200, max: 300 },
-        { label: "300-500", min: 300, max: 500 },
-        { label: "500-1000", min: 500, max: 1000 },
-        { label: "1000-2000", min: 1000, max: 2000 },
-      ];
-      priceRanges.forEach((r) => (filterCounts.price[r.label] = 0));
+      // ------------------------------------------------------------
+      // Color Tone counts
+      // ------------------------------------------------------------
 
-      // Filter products by all active filters
-      const filteredProducts = category.products
-        .map((prod) => {
-          const filteredVariations = prod.variation.filter((v) => {
-            let match = true;
-            if (filters.Price) {
-              if (v.Price < filters.Price.$gte || v.Price > filters.Price.$lte)
-                match = false;
-            }
-            if (
-              filters["variation.ColorTone"] &&
-              v.ColorTone !== filters["variation.ColorTone"]
-            )
-              match = false;
-            if (
-              filters["variation.Finish"] &&
-              v.Finish !== filters["variation.Finish"]
-            )
-              match = false;
-            if (
-              filters["variation.Thickness"] &&
-              v.Thickness !== filters["variation.Thickness"]
-            )
-              match = false;
-            if (
-              filters["variation.Size"] &&
-              v.Size !== filters["variation.Size"]
-            )
-              match = false;
-            return match;
-          });
-          return { ...prod, variation: filteredVariations };
-        })
-        .filter((prod) => prod.variation.length > 0);
-
-      // helper for counts
-      const computeVisibleCount = (excludeKey) => {
-        const active = Object.entries(filters).reduce((acc, [key, val]) => {
-          if (key !== excludeKey) acc[key] = val;
-          return acc;
-        }, {});
-        const subset = category.products
-          .map((prod) => {
-            const variations = prod.variation.filter((v) => {
-              let match = true;
-              if (
-                active.Price &&
-                (v.Price < active.Price.$gte || v.Price > active.Price.$lte)
-              )
-                match = false;
-              if (
-                active["variation.ColorTone"] &&
-                v.ColorTone !== active["variation.ColorTone"]
-              )
-                match = false;
-              if (
-                active["variation.Finish"] &&
-                v.Finish !== active["variation.Finish"]
-              )
-                match = false;
-              if (
-                active["variation.Thickness"] &&
-                v.Thickness !== active["variation.Thickness"]
-              )
-                match = false;
-              if (
-                active["variation.Size"] &&
-                v.Size !== active["variation.Size"]
-              )
-                match = false;
-              return match;
-            });
-            return { ...prod, variation: variations };
-          })
-          .filter((prod) => prod.variation.length > 0);
-        return subset;
-      };
-
-      // Count each filter group options
-      computeVisibleCount("Price").forEach((prod) => {
-        prod.variation.forEach((v) => {
-          if (v.Price != null) {
-            for (const range of priceRanges) {
-              if (v.Price >= range.min && v.Price < range.max)
-                filterCounts.price[range.label] += 1;
-            }
-          }
-        });
+      computeVisibleVariations("colorTone").forEach((variation) => {
+        if (
+          variation.ColorTone &&
+          filterCounts.colorTone[variation.ColorTone] !== undefined
+        ) {
+          filterCounts.colorTone[variation.ColorTone] += 1;
+        }
       });
 
-      computeVisibleCount("variation.ColorTone").forEach((prod) => {
-        prod.variation.forEach((v) => {
-          if (v.ColorTone && filterCounts.colorTone[v.ColorTone] != null)
-            filterCounts.colorTone[v.ColorTone] += 1;
-        });
+      // ------------------------------------------------------------
+      // Finish counts
+      // ------------------------------------------------------------
+
+      computeVisibleVariations("finish").forEach((variation) => {
+        if (variation.Finish) {
+          filterCounts.finish[variation.Finish] =
+            (filterCounts.finish[variation.Finish] || 0) + 1;
+        }
       });
 
-      computeVisibleCount("variation.Finish").forEach((prod) => {
-        prod.variation.forEach((v) => {
-          if (v.Finish)
-            filterCounts.finish[v.Finish] =
-              (filterCounts.finish[v.Finish] || 0) + 1;
-        });
+      // ------------------------------------------------------------
+      // Thickness counts
+      // ------------------------------------------------------------
+
+      computeVisibleVariations("thickness").forEach((variation) => {
+        if (
+          variation.Thickness &&
+          filterCounts.thickness[variation.Thickness] !== undefined
+        ) {
+          filterCounts.thickness[variation.Thickness] += 1;
+        }
       });
 
-      computeVisibleCount("variation.Thickness").forEach((prod) => {
-        prod.variation.forEach((v) => {
-          if (v.Thickness && filterCounts.thickness[v.Thickness] != null)
-            filterCounts.thickness[v.Thickness] += 1;
-        });
+      // ------------------------------------------------------------
+      // Size counts
+      // ------------------------------------------------------------
+
+      computeVisibleVariations("size").forEach((variation) => {
+        if (variation.Size && filterCounts.size[variation.Size] !== undefined) {
+          filterCounts.size[variation.Size] += 1;
+        }
       });
 
-      computeVisibleCount("variation.Size").forEach((prod) => {
-        prod.variation.forEach((v) => {
-          if (v.Size && filterCounts.size[v.Size] != null)
-            filterCounts.size[v.Size] += 1;
-        });
+      // ------------------------------------------------------------
+      // Pcs counts
+      // ------------------------------------------------------------
+
+      computeVisibleVariations("pcs").forEach((variation) => {
+        if (variation.Pcs) {
+          const key = String(variation.Pcs);
+
+          filterCounts.pcs[key] = (filterCounts.pcs[key] || 0) + 1;
+        }
       });
 
-      filteredProducts.forEach((prod) => {
-        prod.variation.forEach((v) => {
-          if (v.Pcs)
-            filterCounts.pcs[String(v.Pcs)] =
-              (filterCounts.pcs[String(v.Pcs)] || 0) + 1;
-          if (v.PackSize)
-            filterCounts.packSize[String(v.PackSize)] =
-              (filterCounts.packSize[String(v.PackSize)] || 0) + 1;
-        });
+      // ------------------------------------------------------------
+      // Pack Size counts
+      // ------------------------------------------------------------
+
+      computeVisibleVariations("packSize").forEach((variation) => {
+        if (variation.PackSize) {
+          const key = String(variation.PackSize);
+
+          filterCounts.packSize[key] = (filterCounts.packSize[key] || 0) + 1;
+        }
       });
 
+      // ------------------------------------------------------------
       // Pagination
-      const start = parseInt(ctx.query.offset || 0);
-      const limit = parseInt(ctx.query.limit || 12);
+      // ------------------------------------------------------------
+
+      const start = parseInt(ctx.query.offset || "0", 10);
+
+      const limit = parseInt(ctx.query.limit || "12", 10);
+
       const paginatedProducts = filteredProducts.slice(start, start + limit);
 
-      // Prepare final products
-      const productsResponse = paginatedProducts.map((prod) => {
-        const variations = prod.variation || [];
-        let chosenVariation = null;
+      // ------------------------------------------------------------
+      // Product response
+      //
+      // Pricing is now handled entirely by
+      // product-pricing.js
+      // ------------------------------------------------------------
 
-        if (variations.length === 1) chosenVariation = variations[0];
-        else if (variations.length > 1) {
-          const inStock = variations.filter(
-            (v) =>
-              typeof v.Per_m2 === "number" &&
-              typeof v.Stock === "number" &&
-              v.Stock > 0,
+      const productsResponse = paginatedProducts
+        .map((product) => {
+          const variations = product.variation || [];
+
+          if (!variations.length) {
+            return null;
+          }
+
+          const productDiscount = toNumber(product.productDiscount);
+
+          const categoryDiscount = toNumber(category.categoryDiscount);
+
+          // ------------------------------------------------------
+          // Transform every variation
+          // ------------------------------------------------------
+
+          const transformedVariations = variations
+            .map((variation) =>
+              transformVariation(variation, productDiscount, categoryDiscount),
+            )
+            .filter(Boolean);
+
+          if (!transformedVariations.length) {
+            return null;
+          }
+
+          // ------------------------------------------------------
+          // Select variation for Product Card
+          //
+          // selectProductCardVariation:
+          //
+          // 1. Prefer in-stock variations
+          // 2. Among them choose cheapest per m²
+          // 3. If all are out of stock, choose cheapest per m²
+          // ------------------------------------------------------
+
+          const selectedVariation = selectProductCardVariation(
+            transformedVariations,
           );
-          const outOfStock = variations.filter(
-            (v) => typeof v.Per_m2 === "number" && v.Stock <= 0,
-          );
 
-          if (inStock.length)
-            chosenVariation = inStock.reduce((min, v) =>
-              v.Per_m2 < (min.Per_m2 ?? Infinity) ? v : min,
-            );
-          else if (outOfStock.length)
-            chosenVariation = outOfStock.reduce((min, v) =>
-              v.Per_m2 < (min.Per_m2 ?? Infinity) ? v : min,
-            );
-          else chosenVariation = variations[0];
-        }
+          if (!selectedVariation) {
+            return null;
+          }
 
-        const v = chosenVariation;
-        const perM2 = typeof v?.Per_m2 === "number" ? v.Per_m2 : 0;
-        const pack = typeof v?.PackSize === "number" ? v.PackSize : 0;
-        const price = Math.floor(perM2 * pack);
+          // ------------------------------------------------------
+          // Product images
+          // ------------------------------------------------------
 
-        // compute discounts
-        const prodDisc = prod.productDiscount ?? 0;
-        const catDisc = category.categoryDiscount ?? 0;
-        const usedDiscount =
-          prodDisc && prodDisc > 0
-            ? prodDisc
-            : catDisc && catDisc > 0
-              ? catDisc
-              : 0;
+          const images =
+            product.images?.map((image) => ({
+              id: image.id,
+              url: image.url,
+              alt: image.alternativeText || image.name || product.name,
+            })) || [];
 
-        let priceBeforeDiscount = null;
-        if (usedDiscount > 0) {
-          const mul = 1 + usedDiscount / 100;
+          // ------------------------------------------------------
+          // Final product card response
+          // ------------------------------------------------------
 
-          priceBeforeDiscount = {
-            Per_m2: Math.floor(perM2 * mul),
-            Price: Math.floor(price * mul),
+          return {
+            variations: transformedVariations,
+
+            selectedVariation,
+
+            product: {
+              id: product.id,
+
+              name: product.name || "",
+
+              slug: product.slug || "",
+
+              productDiscount,
+
+              categoryDiscount,
+
+              images,
+
+              createdAt: product.createdAt,
+
+              updatedAt: product.updatedAt,
+            },
           };
-        }
+        })
+        .filter(Boolean);
 
-        return {
-          variations: prod.variation,
-          selectedVariation: {
-            id: v.uuid,
-            SKU: v.SKU,
-            Per_m2: perM2,
-            Thickness: v.Thickness,
-            Size: v.Size,
-            Finish: v.Finish,
-            PackSize: v.PackSize,
-            Pcs: v.Pcs,
-            Stock: v.Stock,
-            ColorTone: v.ColorTone,
-            Price: price,
-          },
-          priceBeforeDiscount,
-          product: {
-            id: prod.id,
-            name: prod.name,
-            slug: prod.slug,
-            productDiscount: prod.productDiscount ?? 0,
-            categoryDiscount: category.categoryDiscount ?? 0,
-            images:
-              prod.images?.map((img) => ({
-                id: img.id,
-                url: img.url,
-                alt: img.alternativeText,
-              })) ?? [],
-            createdAt: prod.createdAt,
-            updatedAt: prod.updatedAt,
-          },
-        };
-      });
-      /* ================= SEO ================= */
+      // ------------------------------------------------------------
+      // SEO
+      // ------------------------------------------------------------
+
       const seo = category.seo
         ? {
             meta_title: category.seo.meta_title || "",
+
             meta_description: category.seo.meta_description || "",
+
             meta_keyword: category.seo.meta_keyword || "",
+
             canonical_tag: category.seo.canonical_tag || "",
+
             robots: category.seo.robots || "",
+
             og_title: category.seo.og_title || "",
+
             og_description: category.seo.og_description || "",
+
             twitter_title: category.seo.twitter_title || "",
+
             twitter_description: category.seo.twitter_description || "",
 
             og_image: category.seo.og_image ? category.seo.og_image.url : null,
@@ -409,22 +603,39 @@ module.exports = createCoreController(
               : null,
           }
         : null;
+
+      // ------------------------------------------------------------
+      // Final response
+      // ------------------------------------------------------------
+
       return {
         id: category.id,
+
         name: category.name,
+
         slug: category.slug,
+
         bannerImg: category.bannerImg,
+
         footerContent: category.footer_content,
+
         categoryDiscount: category.categoryDiscount,
+
         short_description: category.short_description,
-        images: category.images?.map((img) => ({
-          id: img.id,
-          url: img.url,
-          alt: img.alternativeText,
-        })),
+
+        images:
+          category.images?.map((image) => ({
+            id: image.id,
+            url: image.url,
+            alt: image.alternativeText,
+          })) || [],
+
         totalProducts: filteredProducts.length,
+
         products: productsResponse,
+
         filterCounts,
+
         seo,
       };
     },

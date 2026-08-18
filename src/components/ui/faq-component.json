@@ -1,0 +1,32 @@
+{
+  "collectionName": "components_ui_faq_components",
+  "info": {
+    "displayName": "FAQ_component"
+  },
+  "options": {},
+  "attributes": {
+    "question": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      },
+      "required": true
+    },
+    "answer": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      },
+      "required": true
+    },
+    "sort_order": {
+      "type": "integer",
+      "required": true,
+      "default": 1,
+      "unique": true
+    }
+  },
+  "config": {}
+}

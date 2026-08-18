@@ -1,5 +1,10 @@
 "use strict";
 
+const {
+  transformVariation,
+  selectProductCardVariation,
+} = require("../../../utils/product-pricing");
+
 module.exports = {
   async find(ctx) {
     const entry = await strapi.entityService.findOne(
@@ -81,103 +86,141 @@ module.exports = {
       ? {
           sectionTitle: fc.section_title || "",
           sectionSubtitle: fc.section_subtitle || "",
-          categories: (fc.categories || []).map((item) => {
-            const cat = item.category;
-            const firstImage = cat?.images?.[0] || null;
 
-            return {
-              name: cat?.name || "",
-              slug: cat?.slug || "",
-              images: firstImage
-                ? [
-                    {
-                      url: firstImage.url,
-                      alt: firstImage.alternativeText || "",
+          categories: await Promise.all(
+            (fc.categories || []).map(async (item) => {
+              const cat = item.category;
+              const firstImage = cat?.images?.[0] || null;
+
+              let productCount = 0;
+              console.log("FEATURED CATEGORY:", cat);
+              if (cat?.id) {
+                productCount = await strapi.db
+                  .query("api::product.product")
+                  .count({
+                    where: {
+                      category: {
+                        id: cat.id,
+                      },
                     },
-                  ]
-                : null,
-              startingFrom: item.startingFrom || "",
-            };
-          }),
+                  });
+              }
+
+              return {
+                name: cat?.name || "",
+                slug: cat?.slug || "",
+                images: firstImage
+                  ? [
+                      {
+                        url: firstImage.url,
+                        alt: firstImage.alternativeText || "",
+                      },
+                    ]
+                  : null,
+                sub_heading: item.sub_heading || "",
+                productCount,
+                categoryDiscount: cat?.categoryDiscount || 0,
+              };
+            }),
+          ),
         }
       : null;
 
     /* ============= BEST SELLERS ============== */
+
     const bs = entry.best_seller_section;
 
     const bestSeller = bs
       ? {
           sectionTitle: bs.section_title || "",
           sectionSubtitle: bs.section_subtitle || "",
+
           products: (bs.products || [])
             .map((p) => {
               const variations = Array.isArray(p.variation) ? p.variation : [];
 
-              const normalized = variations.map((v) => {
-                const per = v.Per_m2 || 0;
-                const pack = v.PackSize || 0;
-                const stock = v.Stock || 0;
-                const price = per && pack ? Number((per * pack).toFixed(2)) : 0;
-
-                return {
-                  Per_m2: per,
-                  Price: price,
-                  Stock: stock,
-                };
-              });
-
-              if (!normalized.length) return null;
-
-              const sorted = [...normalized].sort((a, b) => a.Price - b.Price);
-
-              const selected = sorted.find((v) => v.Stock > 0) || sorted[0];
-
-              const productDisc = p.productDiscount || 0;
-              const categoryDisc = p.category?.categoryDiscount || 0;
-
-              const discountPercent =
-                productDisc > 0
-                  ? productDisc
-                  : categoryDisc > 0
-                    ? categoryDisc
-                    : 0;
-
-              const priceAfterDiscount = {
-                Per_m2: selected.Per_m2,
-                Price: selected.Price,
-              };
-
-              let priceBeforeDiscount = null;
-
-              if (discountPercent > 0) {
-                const mul = 1 + discountPercent / 100;
-                priceBeforeDiscount = {
-                  Per_m2: Number((selected.Per_m2 * mul).toFixed(2)),
-                  Price: Number((selected.Price * mul).toFixed(2)),
-                };
+              if (!variations.length) {
+                return null;
               }
 
-              const img = p.images?.[0];
+              /*
+               * Product discount has priority over
+               * category discount.
+               *
+               * Pricing is calculated server-side
+               * through the shared pricing utility.
+               */
+              const productDiscount = Number(p.productDiscount || 0);
+
+              const categoryDiscount = Number(
+                p.category?.categoryDiscount || 0,
+              );
+
+              /*
+               * Transform every variation.
+               *
+               * This gives every variation the same
+               * structure used by the category product cards
+               * and VariationPopup.
+               */
+              const transformedVariations = variations
+                .map((variation) =>
+                  transformVariation(
+                    variation,
+                    productDiscount,
+                    categoryDiscount,
+                  ),
+                )
+                .filter(Boolean);
+
+              if (!transformedVariations.length) {
+                return null;
+              }
+
+              /*
+               * Select the variation shown on the product card.
+               *
+               * Priority:
+               * 1. In-stock variations
+               * 2. Lowest per-m² selling price
+               *
+               * If nothing is in stock, the lowest-priced
+               * variation is selected.
+               */
+              const selectedVariation = selectProductCardVariation(
+                transformedVariations,
+              );
+
+              if (!selectedVariation) {
+                return null;
+              }
+
+              /*
+               * Product card image.
+               *
+               * Only URL + alt are sent to the frontend.
+               */
+              const image = p.images?.[0] || null;
 
               return {
-                name: p.name || "",
-                slug: p.slug || "",
-                productDiscount: p.productDiscount || 0,
-                image: img
-                  ? {
-                      url: img.url,
-                      alt: img.alternativeText || "",
-                    }
-                  : null,
-                priceAfterDiscount,
-                priceBeforeDiscount,
-                category: p.category
-                  ? {
-                      name: p.category.name || "",
-                      slug: p.category.slug || "",
-                      categoryDiscount: p.category.categoryDiscount || 0,
-                    }
-                  : null,
+                product: {
+                  id: p.id,
+                  name: p.name || "",
+                  slug: p.slug || "",
+
+                  images: image
+                    ? [
+                        {
+                          url: image.url,
+                          alt: image.alternativeText || p.name || "",
+                        },
+                      ]
+                    : [],
+                },
+
+                selectedVariation,
+
+                variations: transformedVariations,
               };
             })
             .filter(Boolean),
