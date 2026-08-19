@@ -126,22 +126,36 @@ const selectProductCardVariation = (variations = []) => {
 
   const normalized = variations.filter(Boolean);
 
+  // ------------------------------------------------------------
+  // 1. Prefer variations that are in stock
+  // ------------------------------------------------------------
+
   const inStock = normalized.filter(
     (variation) => Number(variation.Stock || 0) > 0
   );
 
+  // ------------------------------------------------------------
+  // 2. If at least one variation is in stock,
+  //    choose the cheapest PACK PRICE among them.
+  //
+  //    If none are in stock, choose the cheapest PACK PRICE
+  //    overall.
+  // ------------------------------------------------------------
+
   const candidates = inStock.length > 0 ? inStock : normalized;
 
   return candidates.reduce((lowest, current) => {
-    const currentPrice = Number(
-      current?.pricing?.perM2?.selling || 0
+    const currentPackPrice = Number(
+      current?.pricing?.pack?.selling || 0
     );
 
-    const lowestPrice = Number(
-      lowest?.pricing?.perM2?.selling || 0
+    const lowestPackPrice = Number(
+      lowest?.pricing?.pack?.selling || 0
     );
 
-    return currentPrice < lowestPrice ? current : lowest;
+    return currentPackPrice < lowestPackPrice
+      ? current
+      : lowest;
   });
 };
 

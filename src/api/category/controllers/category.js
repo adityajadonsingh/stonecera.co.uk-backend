@@ -96,22 +96,30 @@ module.exports = createCoreController(
       return uniqueCategories;
     },
 
-    // ----------------------------------------------------------------
     async customDetail(ctx) {
       const { slug } = ctx.params;
 
       const { price, colorTone, finish, thickness, size, pcs, packSize } =
         ctx.query;
 
-      // ------------------------------------------------------------
-      // Helpers
-      // ------------------------------------------------------------
+      // ============================================================
+      // HELPERS
+      // ============================================================
 
       const toNumber = (value) => {
         const num = Number(value);
         return Number.isFinite(num) ? num : 0;
       };
 
+      /**
+       * Supports:
+       *
+       * ?colorTone=Beige,Grey
+       *
+       * and also:
+       *
+       * ?colorTone=Beige&colorTone=Grey
+       */
       const parseMultiValue = (value) => {
         if (!value) return [];
 
@@ -128,15 +136,23 @@ module.exports = createCoreController(
           .filter(Boolean);
       };
 
+      /**
+       * OR logic inside one filter.
+       *
+       * Example:
+       * colorTone = [Beige, Grey]
+       *
+       * Variation must be Beige OR Grey.
+       */
       const matchesMultiFilter = (value, selectedValues) => {
         if (!selectedValues.length) return true;
 
-        return selectedValues.includes(value);
+        return selectedValues.includes(String(value));
       };
 
-      // ------------------------------------------------------------
-      // Parse filters
-      // ------------------------------------------------------------
+      // ============================================================
+      // PARSE MULTI-SELECT FILTERS
+      // ============================================================
 
       const selectedColorTones = parseMultiValue(colorTone);
       const selectedFinishes = parseMultiValue(finish);
@@ -145,22 +161,34 @@ module.exports = createCoreController(
       const selectedPcs = parseMultiValue(pcs);
       const selectedPackSizes = parseMultiValue(packSize);
 
+      // ============================================================
+      // PRICE RANGE
+      //
+      // Price = PACK PRICE from variation.Price
+      //
+      // Expected frontend URL:
+      //
+      // ?price=100-500
+      //
+      // This is NOT Per_m2.
+      // ============================================================
+
       let priceFilter = null;
 
-      if (price) {
-        const [min, max] = String(price).split("-").map(Number);
+      if (price !== undefined && price !== null && price !== "") {
+        const priceValue = Number(price);
 
-        if (Number.isFinite(min) && Number.isFinite(max)) {
+        if (Number.isFinite(priceValue)) {
           priceFilter = {
-            min,
-            max,
+            min: 0,
+            max: priceValue,
           };
         }
       }
 
-      // ------------------------------------------------------------
-      // Fetch category with products + variations
-      // ------------------------------------------------------------
+      // ============================================================
+      // FETCH CATEGORY
+      // ============================================================
 
       const category = await strapi.db.query("api::category.category").findOne({
         where: {
@@ -168,14 +196,23 @@ module.exports = createCoreController(
         },
 
         populate: {
+          // --------------------------------------------------------
+          // CATEGORY BANNER
+          // --------------------------------------------------------
           bannerImg: {
             select: ["id", "url", "alternativeText"],
           },
 
+          // --------------------------------------------------------
+          // CATEGORY IMAGES
+          // --------------------------------------------------------
           images: {
             select: ["id", "url", "alternativeText"],
           },
 
+          // --------------------------------------------------------
+          // PRODUCTS
+          // --------------------------------------------------------
           products: {
             select: [
               "name",
@@ -187,13 +224,16 @@ module.exports = createCoreController(
 
             populate: {
               images: {
-                select: ["id", "url", "alternativeText"],
+                select: ["id", "url", "alternativeText", "name"],
               },
 
               variation: true,
             },
           },
 
+          // --------------------------------------------------------
+          // SEO
+          // --------------------------------------------------------
           seo: {
             populate: {
               og_image: true,
@@ -207,24 +247,41 @@ module.exports = createCoreController(
         return ctx.notFound("Category not found");
       }
 
-      // ------------------------------------------------------------
-      // Get all variations
-      //
-      // Keep the original Strapi variation data here because
-      // filtering works against the raw variation fields.
-      // Pricing itself is handled later by product-pricing.js.
-      // ------------------------------------------------------------
+      // ============================================================
+      // CATEGORY PRODUCTS
+      // ============================================================
 
-      const allVariations = category.products.flatMap(
-        (product) => product.variation || [],
+      const categoryProducts = Array.isArray(category.products)
+        ? category.products
+        : [];
+
+      /**
+       * IMPORTANT:
+       *
+       * productCount = actual number of products in category.
+       *
+       * A product with 10 variations still counts as ONE product.
+       */
+      const productCount = categoryProducts.length;
+
+      // ============================================================
+      // ALL VARIATIONS
+      // ============================================================
+
+      const allVariations = categoryProducts.flatMap((product) =>
+        Array.isArray(product.variation) ? product.variation : [],
       );
 
-      // ------------------------------------------------------------
-      // Dynamic pack-price range
+      // ============================================================
+      // DYNAMIC PACK PRICE RANGE
       //
-      // Price = PACK PRICE stored in Strapi.
-      // We intentionally do NOT use Per_m2 for filtering.
-      // ------------------------------------------------------------
+      // Uses variation.Price.
+      //
+      // We intentionally DO NOT use Per_m2.
+      //
+      // This range is calculated from ALL variations in the category,
+      // before filters are applied.
+      // ============================================================
 
       const allPrices = allVariations
         .map((variation) => toNumber(variation.Price))
@@ -234,22 +291,32 @@ module.exports = createCoreController(
 
       const maxPrice = allPrices.length ? Math.max(...allPrices) : 0;
 
-      // ------------------------------------------------------------
-      // Filter matching
-      // ------------------------------------------------------------
+      // ============================================================
+      // VARIATION MATCHING
+      //
+      // Different filters = AND
+      // Same filter = OR
+      // ============================================================
 
       const variationMatches = (variation, activeFilters) => {
-        // ---------------- PRICE ----------------
+        // ----------------------------------------------------------
+        // PRICE
+        // ----------------------------------------------------------
 
-        if (
-          activeFilters.price &&
-          (variation.Price < activeFilters.price.min ||
-            variation.Price > activeFilters.price.max)
-        ) {
-          return false;
+        if (activeFilters.price) {
+          const variationPrice = toNumber(variation.Price);
+
+          if (
+            variationPrice < activeFilters.price.min ||
+            variationPrice > activeFilters.price.max
+          ) {
+            return false;
+          }
         }
 
-        // ---------------- COLOR ----------------
+        // ----------------------------------------------------------
+        // COLOR TONE
+        // ----------------------------------------------------------
 
         if (
           activeFilters.colorTone.length &&
@@ -258,7 +325,9 @@ module.exports = createCoreController(
           return false;
         }
 
-        // ---------------- FINISH ----------------
+        // ----------------------------------------------------------
+        // FINISH
+        // ----------------------------------------------------------
 
         if (
           activeFilters.finish.length &&
@@ -267,7 +336,16 @@ module.exports = createCoreController(
           return false;
         }
 
-        // ---------------- THICKNESS ----------------
+        // ----------------------------------------------------------
+        // THICKNESS
+        //
+        // IMPORTANT:
+        //
+        // DB value:
+        // "THICKNESS 20MM"
+        //
+        // We compare against the RAW enum value.
+        // ----------------------------------------------------------
 
         if (
           activeFilters.thickness.length &&
@@ -276,7 +354,16 @@ module.exports = createCoreController(
           return false;
         }
 
-        // ---------------- SIZE ----------------
+        // ----------------------------------------------------------
+        // SIZE
+        //
+        // IMPORTANT:
+        //
+        // DB value:
+        // "SIZE 600X900"
+        //
+        // We compare against the RAW enum value.
+        // ----------------------------------------------------------
 
         if (
           activeFilters.size.length &&
@@ -285,7 +372,9 @@ module.exports = createCoreController(
           return false;
         }
 
-        // ---------------- PCS ----------------
+        // ----------------------------------------------------------
+        // PCS
+        // ----------------------------------------------------------
 
         if (
           activeFilters.pcs.length &&
@@ -294,7 +383,9 @@ module.exports = createCoreController(
           return false;
         }
 
-        // ---------------- PACK SIZE ----------------
+        // ----------------------------------------------------------
+        // PACK SIZE
+        // ----------------------------------------------------------
 
         if (
           activeFilters.packSize.length &&
@@ -306,9 +397,9 @@ module.exports = createCoreController(
         return true;
       };
 
-      // ------------------------------------------------------------
-      // Active filters
-      // ------------------------------------------------------------
+      // ============================================================
+      // ACTIVE FILTERS
+      // ============================================================
 
       const activeFilters = {
         price: priceFilter,
@@ -320,15 +411,22 @@ module.exports = createCoreController(
         packSize: selectedPackSizes,
       };
 
-      // ------------------------------------------------------------
-      // Filter products
-      // ------------------------------------------------------------
+      // ============================================================
+      // FILTER PRODUCTS
+      //
+      // A product remains visible when AT LEAST ONE of its
+      // variations matches all active filters.
+      // ============================================================
 
       const getFilteredProducts = (filtersToUse) => {
-        return category.products
+        return categoryProducts
           .map((product) => {
-            const filteredVariations = (product.variation || []).filter(
-              (variation) => variationMatches(variation, filtersToUse),
+            const variations = Array.isArray(product.variation)
+              ? product.variation
+              : [];
+
+            const filteredVariations = variations.filter((variation) =>
+              variationMatches(variation, filtersToUse),
             );
 
             return {
@@ -341,12 +439,18 @@ module.exports = createCoreController(
 
       const filteredProducts = getFilteredProducts(activeFilters);
 
-      // ------------------------------------------------------------
-      // Filter counts
+      // ============================================================
+      // FILTER COUNTS
       //
-      // Each filter ignores itself when calculating its counts.
-      // This allows multiple filters to work together.
-      // ------------------------------------------------------------
+      // Each filter ignores ITSELF while calculating its counts.
+      //
+      // Example:
+      //
+      // Color = Beige
+      //
+      // Color counts are calculated without Color=Beige,
+      // but other active filters remain active.
+      // ============================================================
 
       const createFiltersWithout = (filterName) => ({
         price: filterName === "price" ? null : activeFilters.price,
@@ -369,12 +473,22 @@ module.exports = createCoreController(
           createFiltersWithout(excludeFilter),
         );
 
-        return products.flatMap((product) => product.variation || []);
+        return products.flatMap((product) =>
+          Array.isArray(product.variation) ? product.variation : [],
+        );
       };
 
-      // ------------------------------------------------------------
-      // Base filter counts
-      // ------------------------------------------------------------
+      // ============================================================
+      // FILTER COUNTS
+      //
+      // Counts represent UNIQUE PRODUCTS, not variations.
+      //
+      // Example:
+      // A product has 3 Grey variations.
+      // Grey count = 1, not 3.
+      //
+      // Each filter ignores itself while calculating its counts.
+      // ============================================================
 
       const filterCounts = {
         price: {
@@ -382,114 +496,115 @@ module.exports = createCoreController(
           max: maxPrice,
         },
 
-        colorTone: Object.fromEntries(
-          ENUMS.colorTone.map((option) => [option, 0]),
-        ),
+        colorTone: {},
 
         finish: {},
 
-        thickness: Object.fromEntries(
-          ENUMS.thickness.map((option) => [option, 0]),
-        ),
+        thickness: {},
 
-        size: Object.fromEntries(ENUMS.size.map((option) => [option, 0])),
+        size: {},
 
         pcs: {},
 
         packSize: {},
       };
 
-      // ------------------------------------------------------------
-      // Color Tone counts
-      // ------------------------------------------------------------
+      // ============================================================
+      // BUILD PRODUCT COUNTS FOR ONE FILTER
+      // ============================================================
 
-      computeVisibleVariations("colorTone").forEach((variation) => {
-        if (
-          variation.ColorTone &&
-          filterCounts.colorTone[variation.ColorTone] !== undefined
-        ) {
-          filterCounts.colorTone[variation.ColorTone] += 1;
+      const buildProductFilterCounts = (filterKey, variationField) => {
+        const products = getFilteredProducts(createFiltersWithout(filterKey));
+
+        for (const product of products) {
+          const variations = Array.isArray(product.variation)
+            ? product.variation
+            : [];
+
+          // Prevent the same product from being counted
+          // multiple times for the same filter value.
+          const valuesForProduct = new Set();
+
+          for (const variation of variations) {
+            let value = null;
+
+            switch (variationField) {
+              case "ColorTone":
+                value = variation.ColorTone;
+                break;
+
+              case "Finish":
+                value = variation.Finish;
+                break;
+
+              case "Thickness":
+                value = variation.Thickness;
+                break;
+
+              case "Size":
+                value = variation.Size;
+                break;
+
+              case "Pcs":
+                value = variation.Pcs;
+                break;
+
+              case "PackSize":
+                value = variation.PackSize;
+                break;
+
+              default:
+                value = null;
+            }
+
+            if (value !== null && value !== undefined && value !== "") {
+              valuesForProduct.add(String(value));
+            }
+          }
+
+          // Count the product only once for each value.
+          for (const value of valuesForProduct) {
+            filterCounts[filterKey][value] =
+              (filterCounts[filterKey][value] || 0) + 1;
+          }
         }
-      });
+      };
 
-      // ------------------------------------------------------------
-      // Finish counts
-      // ------------------------------------------------------------
+      // ============================================================
+      // BUILD COUNTS
+      // ============================================================
 
-      computeVisibleVariations("finish").forEach((variation) => {
-        if (variation.Finish) {
-          filterCounts.finish[variation.Finish] =
-            (filterCounts.finish[variation.Finish] || 0) + 1;
-        }
-      });
+      buildProductFilterCounts("colorTone", "ColorTone");
 
-      // ------------------------------------------------------------
-      // Thickness counts
-      // ------------------------------------------------------------
+      buildProductFilterCounts("finish", "Finish");
 
-      computeVisibleVariations("thickness").forEach((variation) => {
-        if (
-          variation.Thickness &&
-          filterCounts.thickness[variation.Thickness] !== undefined
-        ) {
-          filterCounts.thickness[variation.Thickness] += 1;
-        }
-      });
+      buildProductFilterCounts("thickness", "Thickness");
 
-      // ------------------------------------------------------------
-      // Size counts
-      // ------------------------------------------------------------
+      buildProductFilterCounts("size", "Size");
 
-      computeVisibleVariations("size").forEach((variation) => {
-        if (variation.Size && filterCounts.size[variation.Size] !== undefined) {
-          filterCounts.size[variation.Size] += 1;
-        }
-      });
+      buildProductFilterCounts("pcs", "Pcs");
 
-      // ------------------------------------------------------------
-      // Pcs counts
-      // ------------------------------------------------------------
+      buildProductFilterCounts("packSize", "PackSize");
 
-      computeVisibleVariations("pcs").forEach((variation) => {
-        if (variation.Pcs) {
-          const key = String(variation.Pcs);
+      // ============================================================
+      // PAGINATION
+      // ============================================================
 
-          filterCounts.pcs[key] = (filterCounts.pcs[key] || 0) + 1;
-        }
-      });
+      const offset = Math.max(0, parseInt(ctx.query.offset || "0", 10));
 
-      // ------------------------------------------------------------
-      // Pack Size counts
-      // ------------------------------------------------------------
+      const limit = Math.max(1, parseInt(ctx.query.limit || "12", 10));
 
-      computeVisibleVariations("packSize").forEach((variation) => {
-        if (variation.PackSize) {
-          const key = String(variation.PackSize);
+      const paginatedProducts = filteredProducts.slice(offset, offset + limit);
 
-          filterCounts.packSize[key] = (filterCounts.packSize[key] || 0) + 1;
-        }
-      });
-
-      // ------------------------------------------------------------
-      // Pagination
-      // ------------------------------------------------------------
-
-      const start = parseInt(ctx.query.offset || "0", 10);
-
-      const limit = parseInt(ctx.query.limit || "12", 10);
-
-      const paginatedProducts = filteredProducts.slice(start, start + limit);
-
-      // ------------------------------------------------------------
-      // Product response
-      //
-      // Pricing is now handled entirely by
-      // product-pricing.js
-      // ------------------------------------------------------------
+      // ============================================================
+      // PRODUCT CARD RESPONSE
+      // ============================================================
 
       const productsResponse = paginatedProducts
         .map((product) => {
-          const variations = product.variation || [];
+          const variations = Array.isArray(product.variation)
+            ? product.variation
+            : [];
 
           if (!variations.length) {
             return null;
@@ -499,9 +614,9 @@ module.exports = createCoreController(
 
           const categoryDiscount = toNumber(category.categoryDiscount);
 
-          // ------------------------------------------------------
-          // Transform every variation
-          // ------------------------------------------------------
+          // --------------------------------------------------------
+          // TRANSFORM ALL MATCHING VARIATIONS
+          // --------------------------------------------------------
 
           const transformedVariations = variations
             .map((variation) =>
@@ -513,15 +628,13 @@ module.exports = createCoreController(
             return null;
           }
 
-          // ------------------------------------------------------
-          // Select variation for Product Card
+          // --------------------------------------------------------
+          // SELECT PRODUCT CARD VARIATION
           //
-          // selectProductCardVariation:
-          //
-          // 1. Prefer in-stock variations
-          // 2. Among them choose cheapest per m²
-          // 3. If all are out of stock, choose cheapest per m²
-          // ------------------------------------------------------
+          // 1. In stock first
+          // 2. Cheapest per m²
+          // 3. If all out of stock, cheapest per m²
+          // --------------------------------------------------------
 
           const selectedVariation = selectProductCardVariation(
             transformedVariations,
@@ -531,20 +644,9 @@ module.exports = createCoreController(
             return null;
           }
 
-          // ------------------------------------------------------
-          // Product images
-          // ------------------------------------------------------
-
-          const images =
-            product.images?.map((image) => ({
-              id: image.id,
-              url: image.url,
-              alt: image.alternativeText || image.name || product.name,
-            })) || [];
-
-          // ------------------------------------------------------
-          // Final product card response
-          // ------------------------------------------------------
+          // --------------------------------------------------------
+          // FINAL PRODUCT CARD
+          // --------------------------------------------------------
 
           return {
             variations: transformedVariations,
@@ -562,7 +664,15 @@ module.exports = createCoreController(
 
               categoryDiscount,
 
-              images,
+              images: product.images?.[0]
+                ? [
+                    {
+                      id: product.images[0].id,
+                      url: product.images[0].url,
+                      alt: product.images[0].alternativeText || "",
+                    },
+                  ]
+                : [],
 
               createdAt: product.createdAt,
 
@@ -572,9 +682,9 @@ module.exports = createCoreController(
         })
         .filter(Boolean);
 
-      // ------------------------------------------------------------
+      // ============================================================
       // SEO
-      // ------------------------------------------------------------
+      // ============================================================
 
       const seo = category.seo
         ? {
@@ -604,9 +714,9 @@ module.exports = createCoreController(
           }
         : null;
 
-      // ------------------------------------------------------------
-      // Final response
-      // ------------------------------------------------------------
+      // ============================================================
+      // FINAL RESPONSE
+      // ============================================================
 
       return {
         id: category.id,
@@ -614,6 +724,13 @@ module.exports = createCoreController(
         name: category.name,
 
         slug: category.slug,
+
+        // ----------------------------------------------------------
+        // NEW:
+        // Total products belonging to this category,
+        // independent of active filters.
+        // ----------------------------------------------------------
+        productCount,
 
         bannerImg: category.bannerImg,
 
@@ -627,9 +744,13 @@ module.exports = createCoreController(
           category.images?.map((image) => ({
             id: image.id,
             url: image.url,
-            alt: image.alternativeText,
+            alt: image.alternativeText || image.name || category.name,
           })) || [],
 
+        // ----------------------------------------------------------
+        // Number of products AFTER filters.
+        // Used for pagination.
+        // ----------------------------------------------------------
         totalProducts: filteredProducts.length,
 
         products: productsResponse,
