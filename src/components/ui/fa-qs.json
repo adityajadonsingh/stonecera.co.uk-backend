@@ -5,6 +5,12 @@
   },
   "options": {},
   "attributes": {
+    "mainHeading": {
+      "type": "string"
+    },
+    "subHeading": {
+      "type": "text"
+    },
     "FAQ": {
       "type": "component",
       "component": "ui.faq-component",

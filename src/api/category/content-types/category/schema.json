@@ -58,10 +58,21 @@
         "preset": "defaultHtml"
       }
     },
+    "faqs": {
+      "type": "component",
+      "component": "ui.fa-qs",
+      "repeatable": false
+    },
     "seo": {
       "type": "component",
       "component": "seo.meta",
       "repeatable": false
+    },
+    "product_catalogue": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::product-catalogue.product-catalogue",
+      "inversedBy": "category"
     }
   }
 }

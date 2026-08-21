@@ -246,6 +246,8 @@ export interface UiFaQs extends Struct.ComponentSchema {
   };
   attributes: {
     FAQ: Schema.Attribute.Component<'ui.faq-component', true>;
+    mainHeading: Schema.Attribute.String;
+    subHeading: Schema.Attribute.Text;
   };
 }
 
@@ -273,7 +275,12 @@ export interface UiFaqComponent extends Struct.ComponentSchema {
       >;
     sort_order: Schema.Attribute.Integer &
       Schema.Attribute.Required &
-      Schema.Attribute.Unique &
+      Schema.Attribute.SetMinMax<
+        {
+          min: 1;
+        },
+        number
+      > &
       Schema.Attribute.DefaultTo<1>;
   };
 }

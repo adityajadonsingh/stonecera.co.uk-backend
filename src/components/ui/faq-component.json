@@ -25,7 +25,8 @@
       "type": "integer",
       "required": true,
       "default": 1,
-      "unique": true
+      "unique": false,
+      "min": 1
     }
   },
   "config": {}

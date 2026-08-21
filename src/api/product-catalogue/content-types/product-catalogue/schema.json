@@ -34,6 +34,12 @@
     "isActive": {
       "type": "boolean",
       "default": true
+    },
+    "category": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::category.category",
+      "mappedBy": "product_catalogue"
     }
   }
 }

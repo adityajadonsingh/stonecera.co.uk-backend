@@ -231,6 +231,12 @@ module.exports = createCoreController(
             },
           },
 
+          faqs: {
+            populate: {
+              FAQ: true,
+            },
+          },
+
           // --------------------------------------------------------
           // SEO
           // --------------------------------------------------------
@@ -240,12 +246,48 @@ module.exports = createCoreController(
               twitter_image: true,
             },
           },
+
+          product_catalogue: {
+            populate: {
+              file: true,
+            },
+          },
         },
       });
 
       if (!category) {
         return ctx.notFound("Category not found");
       }
+
+      const faqs = category.faqs
+        ? {
+            mainHeading: category.faqs.mainHeading || "",
+            subHeading: category.faqs.subHeading || "",
+
+            items: Array.isArray(category.faqs.FAQ)
+              ? [...category.faqs.FAQ]
+                  .sort(
+                    (a, b) =>
+                      Number(a.sort_order || 0) - Number(b.sort_order || 0),
+                  )
+                  .map((faq) => ({
+                    question: faq.question || "",
+                    answer: faq.answer || "",
+                    sort_order: Number(faq.sort_order || 0),
+                  }))
+              : [],
+          }
+        : null;
+
+      const catalogue = category.product_catalogue
+        ? {
+            name: category.product_catalogue.name || "",
+
+            file: category.product_catalogue.file
+              ? category.product_catalogue.file.url
+              : null,
+          }
+        : null;
 
       // ============================================================
       // CATEGORY PRODUCTS
@@ -736,6 +778,8 @@ module.exports = createCoreController(
 
         footerContent: category.footer_content,
 
+        faqs,
+
         categoryDiscount: category.categoryDiscount,
 
         short_description: category.short_description,
@@ -746,6 +790,8 @@ module.exports = createCoreController(
             url: image.url,
             alt: image.alternativeText || image.name || category.name,
           })) || [],
+
+        catalogue,
 
         // ----------------------------------------------------------
         // Number of products AFTER filters.
