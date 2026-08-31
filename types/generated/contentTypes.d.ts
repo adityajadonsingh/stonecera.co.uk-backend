@@ -666,6 +666,34 @@ export interface ApiHomepageHomepage extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiLabelLabel extends Struct.CollectionTypeSchema {
+  collectionName: 'labels';
+  info: {
+    displayName: 'Label';
+    pluralName: 'labels';
+    singularName: 'label';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::label.label'> &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String &
+      Schema.Attribute.Required &
+      Schema.Attribute.Unique;
+    products: Schema.Attribute.Relation<'manyToMany', 'api::product.product'>;
+    publishedAt: Schema.Attribute.DateTime;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiOrderOrder extends Struct.CollectionTypeSchema {
   collectionName: 'orders';
   info: {
@@ -796,6 +824,7 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
   attributes: {
     carts: Schema.Attribute.Relation<'oneToMany', 'api::cart.cart'>;
     category: Schema.Attribute.Relation<'manyToOne', 'api::category.category'>;
+    content: Schema.Attribute.Component<'product.product-content', false>;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
@@ -806,10 +835,12 @@ export interface ApiProductProduct extends Struct.CollectionTypeSchema {
           preset: 'defaultHtml';
         }
       >;
+    faqs: Schema.Attribute.Component<'ui.fa-qs', false>;
     images: Schema.Attribute.Media<
       'images' | 'files' | 'videos' | 'audios',
       true
     >;
+    labels: Schema.Attribute.Relation<'manyToMany', 'api::label.label'>;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -1472,6 +1503,7 @@ declare module '@strapi/strapi' {
       'api::enquiry.enquiry': ApiEnquiryEnquiry;
       'api::footer-detail.footer-detail': ApiFooterDetailFooterDetail;
       'api::homepage.homepage': ApiHomepageHomepage;
+      'api::label.label': ApiLabelLabel;
       'api::order.order': ApiOrderOrder;
       'api::product-catalogue.product-catalogue': ApiProductCatalogueProductCatalogue;
       'api::product-review.product-review': ApiProductReviewProductReview;

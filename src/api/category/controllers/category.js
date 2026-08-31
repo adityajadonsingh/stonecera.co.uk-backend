@@ -463,20 +463,32 @@ module.exports = createCoreController(
       const getFilteredProducts = (filtersToUse) => {
         return categoryProducts
           .map((product) => {
-            const variations = Array.isArray(product.variation)
+            const allVariations = Array.isArray(product.variation)
               ? product.variation
               : [];
 
-            const filteredVariations = variations.filter((variation) =>
+            const matchingVariations = allVariations.filter((variation) =>
               variationMatches(variation, filtersToUse),
             );
 
+            // Product does not satisfy the active filters
+            if (!matchingVariations.length) {
+              return null;
+            }
+
             return {
               ...product,
-              variation: filteredVariations,
+
+              // ONLY variations that match the current filters.
+              // Used for deciding the selected card variation.
+              matchingVariations,
+
+              // ALL variations belonging to the product.
+              // Used by "View All Sizes".
+              allVariations,
             };
           })
-          .filter((product) => product.variation.length > 0);
+          .filter(Boolean);
       };
 
       const filteredProducts = getFilteredProducts(activeFilters);
@@ -644,55 +656,83 @@ module.exports = createCoreController(
 
       const productsResponse = paginatedProducts
         .map((product) => {
-          const variations = Array.isArray(product.variation)
-            ? product.variation
+          const matchingVariations = Array.isArray(product.matchingVariations)
+            ? product.matchingVariations
             : [];
 
-          if (!variations.length) {
+          const allVariations = Array.isArray(product.allVariations)
+            ? product.allVariations
+            : [];
+
+          if (!matchingVariations.length) {
             return null;
           }
 
           const productDiscount = toNumber(product.productDiscount);
-
           const categoryDiscount = toNumber(category.categoryDiscount);
 
-          // --------------------------------------------------------
-          // TRANSFORM ALL MATCHING VARIATIONS
-          // --------------------------------------------------------
-
-          const transformedVariations = variations
+          /*
+           * --------------------------------------------------------
+           * TRANSFORM MATCHING VARIATIONS
+           * --------------------------------------------------------
+           *
+           * These are used for:
+           * - selectedVariation
+           * - current filter result
+           * - card pricing
+           */
+          const transformedMatchingVariations = matchingVariations
             .map((variation) =>
               transformVariation(variation, productDiscount, categoryDiscount),
             )
             .filter(Boolean);
 
-          if (!transformedVariations.length) {
+          if (!transformedMatchingVariations.length) {
             return null;
           }
 
-          // --------------------------------------------------------
-          // SELECT PRODUCT CARD VARIATION
-          //
-          // 1. In stock first
-          // 2. Cheapest per m²
-          // 3. If all out of stock, cheapest per m²
-          // --------------------------------------------------------
+          /*
+           * --------------------------------------------------------
+           * TRANSFORM ALL VARIATIONS
+           * --------------------------------------------------------
+           *
+           * These are used by:
+           * "View All Sizes"
+           *
+           * IMPORTANT:
+           * Do NOT apply the active category filters here.
+           */
+          const transformedAllVariations = allVariations
+            .map((variation) =>
+              transformVariation(variation, productDiscount, categoryDiscount),
+            )
+            .filter(Boolean);
 
+          /*
+           * --------------------------------------------------------
+           * SELECT CARD VARIATION
+           * --------------------------------------------------------
+           *
+           * Selection is based ONLY on variations matching
+           * the current filters.
+           */
           const selectedVariation = selectProductCardVariation(
-            transformedVariations,
+            transformedMatchingVariations,
           );
 
           if (!selectedVariation) {
             return null;
           }
 
-          // --------------------------------------------------------
-          // FINAL PRODUCT CARD
-          // --------------------------------------------------------
-
           return {
-            variations: transformedVariations,
+            /*
+             * ALL variations for View All Sizes
+             */
+            variations: transformedAllVariations,
 
+            /*
+             * Variation used by ProductCard
+             */
             selectedVariation,
 
             product: {

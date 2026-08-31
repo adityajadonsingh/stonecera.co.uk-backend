@@ -1,0 +1,29 @@
+{
+  "collectionName": "components_product_product_contents",
+  "info": {
+    "displayName": "productContent"
+  },
+  "options": {},
+  "attributes": {
+    "introContent": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      }
+    },
+    "highlightCards": {
+      "type": "component",
+      "component": "product.highlight-cards",
+      "repeatable": true
+    },
+    "closingContent": {
+      "type": "customField",
+      "customField": "plugin::ckeditor5.CKEditor",
+      "options": {
+        "preset": "defaultHtml"
+      }
+    }
+  },
+  "config": {}
+}

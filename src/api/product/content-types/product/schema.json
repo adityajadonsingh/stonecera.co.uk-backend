@@ -18,6 +18,12 @@
       "type": "uid",
       "targetField": "name"
     },
+    "labels": {
+      "type": "relation",
+      "relation": "manyToMany",
+      "target": "api::label.label",
+      "mappedBy": "products"
+    },
     "productDiscount": {
       "type": "integer",
       "default": 0
@@ -78,6 +84,16 @@
       "relation": "oneToMany",
       "target": "api::product-review.product-review",
       "mappedBy": "product"
+    },
+    "content": {
+      "type": "component",
+      "component": "product.product-content",
+      "repeatable": false
+    },
+    "faqs": {
+      "type": "component",
+      "component": "ui.fa-qs",
+      "repeatable": false
     }
   }
 }

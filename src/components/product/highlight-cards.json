@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_product_highlight_cards",
+  "info": {
+    "displayName": "highlightCards"
+  },
+  "options": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "enumeration",
+      "enum": [
+        "ShieldCheck",
+        "Award"
+      ]
+    },
+    "points": {
+      "type": "component",
+      "component": "product.points",
+      "repeatable": true
+    }
+  },
+  "config": {}
+}

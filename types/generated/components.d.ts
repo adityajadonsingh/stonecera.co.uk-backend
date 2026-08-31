@@ -138,6 +138,58 @@ export interface OrderOrderItem extends Struct.ComponentSchema {
   };
 }
 
+export interface ProductHighlightCards extends Struct.ComponentSchema {
+  collectionName: 'components_product_highlight_cards';
+  info: {
+    displayName: 'highlightCards';
+  };
+  attributes: {
+    icon: Schema.Attribute.Enumeration<['ShieldCheck', 'Award']>;
+    points: Schema.Attribute.Component<'product.points', true>;
+    title: Schema.Attribute.String;
+  };
+}
+
+export interface ProductPoints extends Struct.ComponentSchema {
+  collectionName: 'components_product_points';
+  info: {
+    displayName: 'points';
+  };
+  attributes: {
+    point: Schema.Attribute.RichText &
+      Schema.Attribute.CustomField<
+        'plugin::ckeditor5.CKEditor',
+        {
+          preset: 'defaultHtml';
+        }
+      >;
+  };
+}
+
+export interface ProductProductContent extends Struct.ComponentSchema {
+  collectionName: 'components_product_product_contents';
+  info: {
+    displayName: 'productContent';
+  };
+  attributes: {
+    closingContent: Schema.Attribute.RichText &
+      Schema.Attribute.CustomField<
+        'plugin::ckeditor5.CKEditor',
+        {
+          preset: 'defaultHtml';
+        }
+      >;
+    highlightCards: Schema.Attribute.Component<'product.highlight-cards', true>;
+    introContent: Schema.Attribute.RichText &
+      Schema.Attribute.CustomField<
+        'plugin::ckeditor5.CKEditor',
+        {
+          preset: 'defaultHtml';
+        }
+      >;
+  };
+}
+
 export interface ProductProductVariation extends Struct.ComponentSchema {
   collectionName: 'components_product_product_variations';
   info: {
@@ -298,6 +350,9 @@ declare module '@strapi/strapi' {
       'input-fields.email': InputFieldsEmail;
       'input-fields.phone': InputFieldsPhone;
       'order.order-item': OrderOrderItem;
+      'product.highlight-cards': ProductHighlightCards;
+      'product.points': ProductPoints;
+      'product.product-content': ProductProductContent;
       'product.product-variation': ProductProductVariation;
       'seo.meta': SeoMeta;
       'ui.fa-qs': UiFaQs;

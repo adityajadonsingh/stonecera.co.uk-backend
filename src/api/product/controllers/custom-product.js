@@ -1,37 +1,102 @@
 // src/api/product/controllers/custom-product.js
 const { createCoreController } = require("@strapi/strapi").factories;
+const {
+  transformVariation,
+  selectProductCardVariation,
+} = require("../../../utils/product-pricing");
 
-async function getHomepageReviews(strapi) {
-  const homepage = await strapi.entityService.findOne(
-    "api::homepage.homepage",
-    1,
-    {
-      populate: {
-        customer_reviews_section: {
-          populate: {
-            reviews: true,
-          },
-        },
-      },
-    },
-  );
+const buildProductCard = (product) => {
+  if (!product || !Array.isArray(product.variation)) {
+    return null;
+  }
 
-  if (!homepage?.customer_reviews_section) return null;
+  if (!product.variation.length) {
+    return null;
+  }
 
-  const rs = homepage.customer_reviews_section;
+  const productDiscount = Number(product.productDiscount || 0);
+
+  const categoryDiscount = Number(product.category?.categoryDiscount || 0);
+
+  // ------------------------------------------------------------
+  // Transform all variations using product-pricing.js
+  // ------------------------------------------------------------
+
+  const variations = product.variation
+    .map((variation) =>
+      transformVariation(variation, productDiscount, categoryDiscount),
+    )
+    .filter(Boolean);
+
+  if (!variations.length) {
+    return null;
+  }
+
+  // ------------------------------------------------------------
+  // Select ProductCard variation using product-pricing.js
+  //
+  // 1. Prefer in-stock variations
+  // 2. Among them choose cheapest PACK PRICE
+  // 3. If all are out of stock, choose cheapest PACK PRICE
+  // ------------------------------------------------------------
+
+  const selectedVariation = selectProductCardVariation(variations);
+
+  if (!selectedVariation) {
+    return null;
+  }
+
+  // ------------------------------------------------------------
+  // Images
+  // ------------------------------------------------------------
+
+  const images =
+    product.images?.map((image) => ({
+      id: image.id,
+      url: image.url,
+      alt: image.alternativeText || image.name || product.name || "",
+    })) || [];
+
+  // ------------------------------------------------------------
+  // Labels
+  // ------------------------------------------------------------
+
+  const labels =
+    product.labels?.map((label) => ({
+      id: label.id,
+      name: label.name,
+    })) || [];
+
+  // ------------------------------------------------------------
+  // Final ProductCard response
+  // ------------------------------------------------------------
 
   return {
-    sectionTitle: rs.sectionTitle || "",
-    sectionSubtitle: rs.sectionSubtitle || "",
-    reviews: (rs.reviews || [])
-      .filter((r) => r.isActive === true)
-      .map((r) => ({
-        name: r.name || "",
-        stars: r.stars || 0,
-        review: r.review || "",
-      })),
+    variations,
+
+    selectedVariation,
+
+    product: {
+      id: product.id,
+
+      name: product.name || "",
+
+      slug: product.slug || "",
+
+      productDiscount,
+
+      categoryDiscount,
+
+      images,
+
+      createdAt: product.createdAt || null,
+
+      updatedAt: product.updatedAt || null,
+    },
+
+    labels,
   };
-}
+};
 
 module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   async allProducts(ctx) {
@@ -146,17 +211,70 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
   async detail(ctx) {
     const { slug } = ctx.params;
 
+    /* =========================================================
+     FETCH PRODUCT
+  ========================================================= */
+
     const items = await strapi.entityService.findMany("api::product.product", {
-      filters: { slug },
+      filters: {
+        slug,
+      },
+
       populate: {
-        images: { fields: ["url", "alternativeText"] },
-        category: { fields: ["name", "slug", "categoryDiscount"] },
-        variation: true,
-        product_reviews: {
-          filters: { isApproved: true },
-          fields: ["name", "feedback", "stars", "createdAt"],
-          sort: { createdAt: "desc" },
+        /* ================= IMAGES ================= */
+
+        images: {
+          fields: ["url", "alternativeText"],
         },
+
+        /* ================= CATEGORY ================= */
+
+        category: {
+          fields: ["name", "slug", "categoryDiscount"],
+        },
+
+        /* ================= VARIATIONS ================= */
+
+        variation: true,
+
+        /* ================= LABELS ================= */
+
+        labels: {
+          fields: ["name"],
+        },
+
+        /* ================= PRODUCT REVIEWS ================= */
+
+        product_reviews: {
+          filters: {
+            isApproved: true,
+          },
+
+          fields: ["name", "feedback", "stars", "createdAt"],
+
+          sort: {
+            createdAt: "desc",
+          },
+        },
+
+        content: {
+          populate: {
+            highlightCards: {
+              populate: {
+                points: true,
+              },
+            },
+          },
+        },
+
+        faqs: {
+          populate: {
+            FAQ: true,
+          },
+        },
+
+        /* ================= SEO ================= */
+
         seo: {
           populate: {
             og_image: true,
@@ -164,68 +282,275 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
           },
         },
       },
+
       publicationState: "live",
+
       limit: 1,
     });
+
+    /* =========================================================
+     PRODUCT NOT FOUND
+  ========================================================= */
 
     if (!items || !items.length) {
       return ctx.notFound("Product not found");
     }
 
+    const getYouMayAlsoLike = async (product) => {
+      const categoryId = product.category?.id;
+
+      if (!categoryId) {
+        return [];
+      }
+
+      // ------------------------------------------------------------
+      // 1. Get products from the SAME CATEGORY
+      // ------------------------------------------------------------
+
+      const sameCategoryProducts = await strapi.entityService.findMany(
+        "api::product.product",
+        {
+          filters: {
+            category: {
+              id: categoryId,
+            },
+
+            // Never recommend the currently opened product
+            id: {
+              $ne: product.id,
+            },
+          },
+
+          populate: {
+            images: {
+              fields: ["url", "alternativeText", "name"],
+            },
+
+            category: {
+              fields: ["id", "name", "slug", "categoryDiscount"],
+            },
+
+            variation: true,
+
+            labels: {
+              fields: ["name"],
+            },
+          },
+
+          publicationState: "live",
+
+          limit: 100,
+        },
+      );
+
+      // ------------------------------------------------------------
+      // 2. Transform same-category products
+      // ------------------------------------------------------------
+
+      const sameCategoryRecommendations = sameCategoryProducts
+        .map(buildProductCard)
+        .filter(Boolean);
+
+      // ------------------------------------------------------------
+      // 3. If we already have 4, return only 4
+      // ------------------------------------------------------------
+
+      if (sameCategoryRecommendations.length >= 4) {
+        return sameCategoryRecommendations.slice(0, 4);
+      }
+
+      // ------------------------------------------------------------
+      // 4. We need more products.
+      //
+      //    Fetch products from OTHER categories.
+      // ------------------------------------------------------------
+
+      const requiredProducts = 4 - sameCategoryRecommendations.length;
+
+      const otherProducts = await strapi.entityService.findMany(
+        "api::product.product",
+        {
+          filters: {
+            id: {
+              $ne: product.id,
+            },
+
+            category: {
+              id: {
+                $ne: categoryId,
+              },
+            },
+          },
+
+          populate: {
+            images: {
+              fields: ["url", "alternativeText", "name"],
+            },
+
+            category: {
+              fields: ["id", "name", "slug", "categoryDiscount"],
+            },
+
+            variation: true,
+
+            labels: {
+              fields: ["name"],
+            },
+          },
+
+          publicationState: "live",
+
+          limit: 100,
+        },
+      );
+
+      // ------------------------------------------------------------
+      // 5. Randomise other-category products
+      // ------------------------------------------------------------
+
+      const shuffledOtherProducts = [...otherProducts].sort(
+        () => Math.random() - 0.5,
+      );
+
+      // ------------------------------------------------------------
+      // 6. Transform them using the SAME ProductCard logic
+      // ------------------------------------------------------------
+
+      const additionalRecommendations = shuffledOtherProducts
+        .map(buildProductCard)
+        .filter(Boolean)
+        .slice(0, requiredProducts);
+
+      // ------------------------------------------------------------
+      // 7. Final result
+      // ------------------------------------------------------------
+
+      return [
+        ...sameCategoryRecommendations,
+        ...additionalRecommendations,
+      ].slice(0, 4);
+    };
+
     const prod = items[0];
+    const youMayAlsoLike = await getYouMayAlsoLike(prod);
+    const faqs = prod.faqs
+      ? {
+          mainHeading: prod.faqs.mainHeading || "",
+          subHeading: prod.faqs.subHeading || "",
 
-    // normalize every variation (compute Price)
-    const variations = (prod.variation || []).map((v) => {
-      const per = typeof v.Per_m2 === "number" ? v.Per_m2 : 0;
-      const pack = typeof v.PackSize === "number" ? v.PackSize : 0;
-      const raw = per && pack ? per * pack : 0;
-      const price = Math.floor(raw);
-      return {
-        id: v.uuid || v.id || null,
-        SKU: v.SKU,
-        Per_m2: per,
-        PackSize: pack,
-        Pcs: v.Pcs ?? 0,
-        Stock: v.Stock ?? 0,
-        ColorTone: v.ColorTone,
-        Finish: v.Finish,
-        Thickness: v.Thickness,
-        Size: v.Size,
-        Price: price,
-      };
-    });
+          items: Array.isArray(prod.faqs.FAQ)
+            ? [...prod.faqs.FAQ]
+                .sort(
+                  (a, b) =>
+                    Number(a.sort_order || 0) - Number(b.sort_order || 0),
+                )
+                .map((faq) => ({
+                  question: faq.question || "",
+                  answer: faq.answer || "",
+                  sort_order: Number(faq.sort_order || 0),
+                }))
+            : [],
+        }
+      : null;
 
-    // compute priceBeforeDiscount from cheapest
-    const cheapest =
+    /* =========================================================
+     DISCOUNTS
+  ========================================================= */
+
+    const productDiscount = Number(prod.productDiscount || 0);
+
+    const categoryDiscount = Number(prod.category?.categoryDiscount || 0);
+
+    /* =========================================================
+     NORMALIZE ALL VARIATIONS
+     
+     Pricing comes from product-pricing.js
+
+     Price    = Pack Price stored in Strapi
+     Per m²   = Pack Price / Pack Size
+     Discount = Product discount > Category discount
+  ========================================================= */
+
+    const variations = (prod.variation || [])
+      .map((variation) =>
+        transformVariation(variation, productDiscount, categoryDiscount),
+      )
+      .filter(Boolean);
+
+    /* =========================================================
+     SELECT TOP PRODUCT PRICE
+     
+     IMPORTANT:
+
+     For the product page, the top "From £X /m²"
+     is based on the CHEAPEST PER-M² PRICE.
+
+     Stock does NOT affect this selection.
+  ========================================================= */
+
+    const selectedVariation =
       variations.length > 0
-        ? variations.reduce((min, v) => (v.Price < min.Price ? v : min))
+        ? [...variations].sort(
+            (a, b) =>
+              Number(a?.pricing?.perM2?.selling || 0) -
+              Number(b?.pricing?.perM2?.selling || 0),
+          )[0]
         : null;
 
-    const prodDisc = prod.productDiscount ?? 0;
-    const catDisc = prod.category?.categoryDiscount ?? 0;
-    const used = prodDisc > 0 ? prodDisc : catDisc > 0 ? catDisc : 0;
+    /* =========================================================
+     SORT AVAILABLE VARIATIONS
+     
+     Variation cards are displayed from:
+     
+     LOWEST PACK PRICE
+             ↓
+     HIGHEST PACK PRICE
+  ========================================================= */
 
-    let priceBeforeDiscount = null;
-    if (used > 0 && cheapest) {
-      const mul = 1 + used / 100;
-      priceBeforeDiscount = {
-        Per_m2: Math.floor(cheapest.Per_m2 * mul),
-        Price: Math.floor(cheapest.Price * mul),
-      };
-    }
+    const sortedVariations = [...variations].sort(
+      (a, b) =>
+        Number(a?.pricing?.pack?.selling || 0) -
+        Number(b?.pricing?.pack?.selling || 0),
+    );
 
-    const reviews = await getHomepageReviews(strapi);
-    /* ================= SEO ================= */
+    /* =========================================================
+     PRICE BEFORE DISCOUNT
+     
+     Kept for compatibility with existing frontend code.
+     
+     Uses the selected variation's original pricing.
+  ========================================================= */
+
+    const priceBeforeDiscount = selectedVariation?.pricing?.isDiscounted
+      ? {
+          pack: selectedVariation.pricing.pack.original,
+
+          perM2: selectedVariation.pricing.perM2.original,
+        }
+      : null;
+
+    /* =========================================================
+     SEO
+  ========================================================= */
+
     const seo = prod.seo
       ? {
           meta_title: prod.seo.meta_title || "",
+
           meta_description: prod.seo.meta_description || "",
+
           meta_keyword: prod.seo.meta_keyword || "",
+
           canonical_tag: prod.seo.canonical_tag || "",
+
           robots: prod.seo.robots || "",
+
           og_title: prod.seo.og_title || "",
+
           og_description: prod.seo.og_description || "",
+
           twitter_title: prod.seo.twitter_title || "",
+
           twitter_description: prod.seo.twitter_description || "",
 
           og_image: prod.seo.og_image ? prod.seo.og_image.url : null,
@@ -235,35 +560,100 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
             : null,
         }
       : null;
+
+    /* =========================================================
+     FINAL RESPONSE
+  ========================================================= */
+
     return {
+      /* ================= BASIC PRODUCT DATA ================= */
+
       id: prod.id,
+
       name: prod.name,
+
       slug: prod.slug,
+
       description: prod.description,
-      productDiscount: prod.productDiscount ?? 0,
-      images:
-        (prod.images || []).map((img) => ({
-          url: img.url,
-          alt: img.alternativeText,
-        })) ?? [],
-      variations,
+
+      productDiscount: productDiscount,
+
+      /* ================= PRODUCT CONTENT ================= */
+
+      content: prod.content
+        ? {
+            introContent: prod.content.introContent || "",
+
+            highlightCards: (prod.content.highlightCards || []).map((card) => ({
+              title: card.title || "",
+              icon: card.icon || "",
+              points: (card.points || []).map((point) => ({
+                point: point.point || "",
+              })),
+            })),
+
+            closingContent: prod.content.closingContent || "",
+          }
+        : {},
+
+      faqs,
+
+      /* ================= IMAGES ================= */
+
+      images: (prod.images || []).map((img) => ({
+        url: img.url,
+        alt: img.alternativeText || "",
+      })),
+
+      /* ================= ALL VARIATIONS ================= */
+
+      variations: sortedVariations,
+
+      /* ================= TOP / SELECTED VARIATION ================= */
+
+      selectedVariation,
+
+      /* ================= LABELS ================= */
+
+      labels: (prod.labels || []).map((label) => ({
+        id: label.id,
+        name: label.name || "",
+      })),
+
+      /* ================= CATEGORY ================= */
+
       category: prod.category
         ? {
-            name: prod.category.name,
-            slug: prod.category.slug,
-            categoryDiscount: prod.category.categoryDiscount ?? 0,
+            name: prod.category.name || "",
+
+            slug: prod.category.slug || "",
+
+            categoryDiscount: Number(prod.category.categoryDiscount || 0),
           }
         : null,
+
+      /* ================= PRICE BEFORE DISCOUNT ================= */
+
       priceBeforeDiscount,
-      reviews,
-      productReviews: (prod.product_reviews || []).map((r) => ({
-        name: r.name,
-        stars: r.stars,
-        feedback: r.feedback,
-        createdAt: r.createdAt
-          ? new Date(r.createdAt).toISOString().split("T")[0]
+
+      /* ================= PRODUCT REVIEWS ================= */
+
+      productReviews: (prod.product_reviews || []).map((review) => ({
+        name: review.name || "",
+
+        stars: review.stars || 0,
+
+        feedback: review.feedback || "",
+
+        createdAt: review.createdAt
+          ? new Date(review.createdAt).toISOString().split("T")[0]
           : null,
       })),
+
+      youMayAlsoLike,
+
+      /* ================= SEO ================= */
+
       seo,
     };
   },

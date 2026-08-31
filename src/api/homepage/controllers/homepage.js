@@ -53,6 +53,13 @@ module.exports = {
               reviews: true,
             },
           },
+
+          FAQ_section: {
+            populate: {
+              FAQ: true,
+            },
+          },
+
           seo: {
             populate: {
               og_image: true,
@@ -271,6 +278,26 @@ module.exports = {
         : null,
     }));
 
+    /* ================= FAQ ================= */
+
+    const faqSection = entry.FAQ_section;
+
+    const faqs = faqSection
+      ? {
+          mainHeading: faqSection.mainHeading || "",
+          subHeading: faqSection.subHeading || "",
+
+          items: (faqSection.FAQ || [])
+            .sort(
+              (a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0),
+            )
+            .map((faq) => ({
+              question: faq.question || "",
+              answer: faq.answer || "",
+            })),
+        }
+      : null;
+
     /* ================= SEO ================= */
     const seo = entry.seo
       ? {
@@ -299,6 +326,7 @@ module.exports = {
       bestSeller,
       reviews,
       blogs,
+      faqs,
       seo,
     };
   },
