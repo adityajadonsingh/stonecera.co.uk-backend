@@ -113,22 +113,40 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
 
   // GET /api/products?limit=&page=0
   async list(ctx) {
-    const limit = parseInt(ctx.query.limit || "12", 10);
+    const limit = Math.max(parseInt(ctx.query.limit || "12", 10), 1);
+
     const page = Math.max(parseInt(ctx.query.page || "1", 10), 1);
+
     const offset = (page - 1) * limit;
 
     const [products, totalProducts] = await Promise.all([
       strapi.entityService.findMany("api::product.product", {
         populate: {
-          images: { fields: ["url", "alternativeText"] },
-          category: { fields: ["name", "slug", "categoryDiscount"] },
+          images: {
+            fields: ["url", "alternativeText"],
+          },
+
+          category: {
+            fields: ["name", "slug", "categoryDiscount"],
+          },
+
           variation: true,
+
+          labels: {
+            fields: ["name"],
+          },
         },
+
         limit,
         start: offset,
+
         publicationState: "live",
-        sort: { createdAt: "desc" },
+
+        sort: {
+          createdAt: "desc",
+        },
       }),
+
       strapi.entityService.count("api::product.product", {
         publicationState: "live",
       }),
@@ -136,67 +154,91 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
 
     const productsResponse = products
       .map((prod) => {
-        const variations = Array.isArray(prod.variation) ? prod.variation : [];
-        if (!variations.length) return null;
+        const rawVariations = Array.isArray(prod.variation)
+          ? prod.variation
+          : [];
 
-        // Normalize variations
-        const normalized = variations.map((v) => {
-          const per = typeof v.Per_m2 === "number" ? v.Per_m2 : 0;
-          const pack = typeof v.PackSize === "number" ? v.PackSize : 0;
-          const stock = v.Stock ?? 0;
-          const raw = per && pack ? per * pack : 0;
+        if (!rawVariations.length) {
+          return null;
+        }
 
-          return {
-            id: v.uuid || v.id,
-            Per_m2: per,
-            PackSize: pack,
-            Stock: stock,
-            Price: Math.floor(raw),
-            SKU: v.SKU,
-            Finish: v.Finish,
-            Thickness: v.Thickness,
-            Size: v.Size,
-            Pcs: v.Pcs,
-            ColorTone: v.ColorTone,
-          };
-        });
+        const productDiscount = Number(prod.productDiscount || 0);
 
-        // Choose variation (same logic as category)
-        const inStock = normalized.filter((v) => v.Stock > 0);
-        const chosen =
-          inStock.sort((a, b) => a.Per_m2 - b.Per_m2)[0] ||
-          normalized.sort((a, b) => a.Per_m2 - b.Per_m2)[0];
+        const categoryDiscount = Number(prod.category?.categoryDiscount || 0);
 
-        const prodDisc = prod.productDiscount ?? 0;
-        const catDisc = prod.category?.categoryDiscount ?? 0;
-        const usedDiscount =
-          prodDisc > 0 ? prodDisc : catDisc > 0 ? catDisc : 0;
+        /*
+         * Calculate all variation pricing through
+         * the central pricing utility.
+         */
+        const variations = rawVariations
+          .map((variation) =>
+            transformVariation(variation, productDiscount, categoryDiscount),
+          )
+          .filter(Boolean);
 
-        let priceBeforeDiscount = null;
-        if (usedDiscount > 0) {
-          const mul = 1 + usedDiscount / 100;
-          priceBeforeDiscount = {
-            Per_m2: Math.floor(chosen.Per_m2 * mul),
-            Price: Math.floor(chosen.Price * mul),
-          };
+        if (!variations.length) {
+          return null;
+        }
+
+        /*
+         * Select the variation that ProductCard
+         * should display.
+         */
+        const selectedVariation = selectProductCardVariation(variations);
+
+        if (!selectedVariation) {
+          return null;
         }
 
         return {
-          variations: normalized,
-          selectedVariation: chosen,
-          priceBeforeDiscount,
+          variations,
+
+          selectedVariation,
+
           product: {
             id: prod.id,
+
             name: prod.name,
+
             slug: prod.slug,
-            productDiscount: prod.productDiscount ?? 0,
-            categoryDiscount: prod.category?.categoryDiscount ?? 0,
+
+            description: prod.description || "",
+
+            productDiscount,
+
+            categoryDiscount,
+
             images:
               prod.images?.map((img) => ({
+                id: img.id,
                 url: img.url,
                 alt: img.alternativeText || "",
-              })) ?? [],
-            updatedAt: prod.updatedAt ?? prod.createdAt,
+              })) || [],
+
+            image: prod.images?.[0]
+              ? {
+                  url: prod.images[0].url,
+                  alt: prod.images[0].alternativeText || "",
+                }
+              : null,
+
+            labels:
+              prod.labels?.map((label) => ({
+                id: label.id,
+                name: label.name,
+              })) || [],
+
+            category: prod.category
+              ? {
+                  name: prod.category.name,
+                  slug: prod.category.slug,
+                  categoryDiscount: Number(prod.category.categoryDiscount || 0),
+                }
+              : null,
+
+            variations,
+
+            updatedAt: prod.updatedAt || prod.createdAt,
           },
         };
       })
@@ -204,7 +246,14 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
 
     return {
       totalProducts,
+
       products: productsResponse,
+
+      page,
+
+      limit,
+
+      totalPages: Math.ceil(totalProducts / limit),
     };
   },
   // GET /api/product/:slug
