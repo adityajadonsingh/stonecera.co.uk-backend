@@ -86,7 +86,7 @@ module.exports = {
   async products(ctx) {
     let productIds = [];
 
-    // If ids are explicitly provided → ALWAYS use them (guest case)
+    // 1️⃣ If ids are explicitly provided → ALWAYS use them (guest case)
     if (ctx.query.ids) {
       productIds = ctx.query.ids
         .split(",")
@@ -94,7 +94,7 @@ module.exports = {
         .filter(Boolean);
     }
 
-    // Else, if logged-in → use DB wishlist
+    // 2️⃣ Else, if logged-in → use DB wishlist
     else if (ctx.state.user) {
       const user = await strapi.entityService.findOne(
         "plugin::users-permissions.user",
@@ -107,7 +107,7 @@ module.exports = {
       productIds = user?.wishlist?.map((p) => p.id) || [];
     }
 
-    // Nothing to return
+    // 3️⃣ Nothing to return
     if (!productIds.length) {
       return [];
     }
@@ -123,7 +123,7 @@ module.exports = {
       }
     );
 
-    // RETURN ARRAY DIRECTLY
+    // ✅ RETURN ARRAY DIRECTLY
     return products.map((p) => ({
       id: p.id,
       name: p.name,

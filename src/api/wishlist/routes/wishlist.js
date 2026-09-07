@@ -4,13 +4,10 @@ module.exports = {
   routes: [
     {
       method: "GET",
-
-      path: "/wishlist/products",
-
-      handler: "wishlist.products",
-
+      path: "/wishlist",
+      handler: "wishlist.get",
       config: {
-        auth: false,
+        auth: { strategies: ["users-permissions"] },
       },
     },
     {
