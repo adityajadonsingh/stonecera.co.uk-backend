@@ -170,7 +170,7 @@ module.exports = {
             id: product?.id ?? null,
             name: product?.name ?? null,
             slug: product?.slug ?? null,
-            image: getProductImage(product, item.metadata),
+            image: product?.images[0]?.url,
           },
 
           variation: {
@@ -313,7 +313,7 @@ module.exports = {
             id: product.id,
             name: product.name,
             slug: product.slug,
-            image: getProductImage(product, null),
+            image: product?.images[0]?.url,
           },
 
           variation: {
