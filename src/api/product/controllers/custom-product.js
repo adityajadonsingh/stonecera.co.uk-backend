@@ -726,11 +726,19 @@ module.exports = createCoreController("api::product.product", ({ strapi }) => ({
     const variations = product.variation || [];
 
     const updatedVariations = variations.map((v) => {
-      const match = updates.find((u) => u.uuid == v.uuid);
+      const match = updates.find(
+        (u) =>
+          String(u.SKU || "")
+            .trim()
+            .toUpperCase() ===
+          String(v.SKU || "")
+            .trim()
+            .toUpperCase(),
+      );
       if (match) {
         return {
           ...v,
-          SKU: match.SKU,
+          SKU: v.SKU,
           Stock: Number(match.Stock),
           Price: Number(match.Price),
           Per_m2: Number(match.Per_m2),
